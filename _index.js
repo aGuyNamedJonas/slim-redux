@@ -1,4 +1,6 @@
 import { createStore } from 'redux'
+import { immutable } from 'immutable'
+import { helloWorld } from './lib/createStore'
 
 function counter(state = 0, action) {
   switch (action.type) {
@@ -21,3 +23,6 @@ store.subscribe(() =>
 store.dispatch({ type: 'INCREMENT' })
 store.dispatch({ type: 'INCREMENT' })
 store.dispatch({ type: 'DECREMENT' })
+store.dispatch({ type: 'DECREMENT' })
+
+helloWorld()
