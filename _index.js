@@ -1,9 +1,9 @@
 import { createStore } from 'redux';
-import { slimReduxReducer } from './src/slimReduxReducer';
+import { createSlimReduxReducer } from './src/slimReduxReducer';
 import { registerStoreDispatch } from './src/slimRedux';
 import { change } from './src/change';
 
-let store = createStore(slimReduxReducer);
+let store = createStore(createSlimReduxReducer(0));
 registerStoreDispatch(store.dispatch);
 
 store.subscribe(() =>
@@ -12,7 +12,7 @@ store.subscribe(() =>
 
 const increment = change({
   actionType: 'INCREMENT',
-  modifier: (state, payload, action) => {
+  reducer: (state, payload, action) => {
     const value = payload.value || 1;
     return state + value;
   },
@@ -21,11 +21,19 @@ const increment = change({
 
 const decrement = change({
   actionType: 'DECREMENT',
-  modifier: (state, payload, action) => {
+  reducer: (state, payload, action) => {
     const value = payload.value || 1;
     return state - value;
   },
   registerOnly: true,
+});
+
+const anonymousIncrement = change({
+  reducer: (state, payload) => {
+    const value = payload.value || 1;
+    return state - value;
+  },
+  registerOnly: true
 });
 
 increment({value: 20});
@@ -33,3 +41,5 @@ increment({value: 10});
 
 decrement({value: 50});
 decrement({value: 100});
+
+anonymousIncrement({value: 100});
