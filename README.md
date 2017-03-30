@@ -35,11 +35,11 @@ Read more about the motivation and design goals of `slim-redux` in (this blog po
 *insert getting started code example here* 
 
 # Advanced 
-**Payload validation (not implemented yet)** 
+## Payload validation (not implemented yet) 
 To give the *change-trigger function* the possibility to check the passed in arguments before triggering an action in the store, an optional *inputValidation* function can be passed in the *change()* function. The *inputValidation* function can determine whether the action will be triggered or not. 
 In case of an error in the *inputValidation* a FSA compliant error action is triggered which can be caught by middleware like (redux-catch)[https://github.com/PlatziDev/redux-catch]. 
 
-**Anonymous changes (not implemented yet)** 
+## Anonymous changes (not implemented yet)
 To make store changes even more accessible and simpler to trigger, when calling the `change()` function, the `actionType` parameter can be omitted. The only required parameter is the `reducer`:  
 ```
 const addTodoAnonymous = change({
