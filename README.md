@@ -7,5 +7,7 @@ slim-redux
 
 This project was created to make working with redux more efficient and concise while allowing redux based projects to gradually switch, instead of having to refactor their entire state management code to work with a more concise redux alternative.
 
-#Runnig in node.js
+Runnig in node.js  
+------------------
+
 `npm install` and then `npm run build-dev` and in another terminal window `npm start`. Both are auto-reloading.

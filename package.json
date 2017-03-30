@@ -9,9 +9,8 @@
     "url": "git://github.com/aGuyNamedJonas/slim-redux.git"
   },
   "scripts": {
-    "start": "nodemon index.js",
-    "build": "rollup _index.js --format cjs --output index.js",
-    "build-dev": "rollup _index.js -w --format cjs --output index.js"
+    "start": "rollup _index.js --format cjs --output index.js && node index.js",
+    "build": "rollup _index.js --format cjs --output index.js"
   },
   "main": "index.js",
   "dependencies": {
@@ -19,8 +18,6 @@
     "redux": "^3.6.0"
   },
   "devDependencies": {
-    "nodemon": "^1.11.0",
-    "rollup-watch": "^3.2.2"
   },
   "optionalDependencies": {},
   "engines": {
