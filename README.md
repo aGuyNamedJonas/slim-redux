@@ -1,13 +1,57 @@
 slim-redux
 ==========
 
-`crud-redux` is an alternative interface for `redux` which replaces the concept of `actions` and `reducers` with singular `change` statements which have a **label**, a **pure state-modifying function** (which of course doesn't modify state, but returns a new version) and an (optional) **input validation function**.
+slim-redux is an alternative interface for redux which aims at making working with redux more concise while being 100% redux compatible.
 
-`crud-redux` adheres to the three core principles of redux and creates actions & reducers in the background which makes it completely compatible with redux.
+# Motivation
+Redux is awesome- the decoupled nature of defining actions and reducers can have its (challenges)[] though.
+`slim-redux` attempts to simplify working with redux by coupling action and reducer definitions in singular `change` statements:
 
-This project was created to make working with redux more efficient and concise while allowing redux based projects to gradually switch, instead of having to refactor their entire state management code to work with a more concise redux alternative.
+```
+const addTodo = change({
+  actionType: 'ADD_TODO',
+  reducer: (state, payload, action) => {
+    return [...state, {id: payload.id, label: payload.label, checked: false}];
+  },
+});
+```
 
-Runnig in node.js  
-------------------
+`change()` returns a *change-trigger function* (it will trigger a change in the store) which takes a single *payload* parameter and will trigger the *ADD_TODO* action when called: 
+```
+addTodo({id: 2, label: 'CHANGE THE WORLD'});
+// will dispatch the following FSA (flux standard action) compliant action to the reducer:
+// {type: 'ADD_TODO', payload: {id: 2, label: 'CHANGE THE WORLD'}}
+```  
 
-`npm install` and then `npm run build-dev` and in another terminal window `npm start`. Both are auto-reloading.
+In our example the reducer that we defined in the `change()` statement will process the `ADD_TODO` action, but note that the `ADD_TODO` action could also have been triggered by regular redux code. 
+`change()` returns an action creator function and processes the registered action like a regular reducer. `slim-redux` is 100% redux-compatible and adheres to the same (core principles)[] as redux. 
+
+Read more about the motivation and design goals of `slim-redux` in (this blog post)[].  
+
+# Installation 
+*insert installation guide + instructions on rollup / ES2016 here* 
+
+# Getting started 
+*insert getting started code example here* 
+
+# Advanced 
+**Payload validation (not implemented yet)** 
+To give the *change-trigger function* the possibility to check the passed in arguments before triggering an action in the store, an optional *inputValidation* function can be passed in the *change()* function. The *inputValidation* function can determine whether the action will be triggered or not. 
+In case of an error in the *inputValidation* a FSA compliant error action is triggered which can be caught by middleware like (redux-catch)[https://github.com/PlatziDev/redux-catch]. 
+
+**Anonymous changes (not implemented yet)** 
+To make store changes even more accessible and simpler to trigger, when calling the `change()` function, the `actionType` parameter can be omitted. The only required parameter is the `reducer`:  
+```
+const addTodoAnonymous = change({
+  reducer: (state, payload, action) => {
+    return [...state, {id: payload.id, label: payload.label, checked: false}];
+  }
+});
+```
+Calling `addTodoAnonymous()` will now trigger an action of the type `__ANONYMOUS-CHANGE__`: 
+```
+addTodo({id: 2, label: 'CHANGE THE WORLD'});
+// dispatches the following action:
+// {type: '__ANONYMOUS-CHANGE__', payload: {id: 2, label: 'CHANGE THE WORLD'}}
+```  
+
