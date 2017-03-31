@@ -1,5 +1,5 @@
-slim-redux
-==========
+(WIP) slim-redux
+================
 
 slim-redux is an alternative interface for redux which aims at making working with redux more concise while being 100% redux compatible.
 
