@@ -9,10 +9,9 @@
     "url": "git://github.com/aGuyNamedJonas/slim-redux.git"
   },
   "scripts": {
-    "start": "rollup _index.js --format cjs --output index.js && node index.js",
-    "build": "rollup _index.js --format cjs --output index.js"
+    "build": "rollup ./src/index.js --format cjs --output ./dist/index.js"
   },
-  "main": "index.js",
+  "main": "./dist/index.js",
   "dependencies": {
     "immutable": "^3.8.1",
     "redux": "^3.6.0"
