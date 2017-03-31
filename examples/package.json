@@ -1,0 +1,18 @@
+{
+  "name": "slim-redux-examples",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "rollup -i all.js -o ./build/all.js -f cjs && rollup -i anonymous.js -o ./build/anonymous.js -f cjs && rollup -i simple.js -o ./build/simple.js -f cjs && rollup -i validation.js -o ./build/validation.js -f cjs"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "rollup": "^0.41.6"
+  },
+  "dependencies": {
+    "redux": "^3.6.0",
+    "slim-redux": "0.0.1"
+  }
+}
