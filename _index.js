@@ -1,16 +1,15 @@
 import { createStore } from 'redux';
 import { createSlimReduxReducer } from './src/slimReduxReducer';
-import { registerStoreDispatch } from './src/slimRedux';
-import { change } from './src/change';
+import { initSlimRedux } from './src/slimRedux';
 
-let store = createStore(createSlimReduxReducer(0));
-registerStoreDispatch(store.dispatch);
+var store = createStore(createSlimReduxReducer(0));
+initSlimRedux(store);
 
 store.subscribe(() =>
   console.log(store.getState())
 )
 
-const increment = change({
+const increment = store.change({
   actionType: 'INCREMENT',
   reducer: (state, payload, action) => {
     const value = payload.value || 1;
@@ -18,7 +17,7 @@ const increment = change({
   }
 });
 
-const decrement = change({
+const decrement = store.change({
   actionType: 'DECREMENT',
   reducer: (state, payload, action) => {
     const value = payload.value || 1;
@@ -26,14 +25,14 @@ const decrement = change({
   }
 });
 
-const anonymousIncrement = change({
+const anonymousIncrement = store.change({
   reducer: (state, payload) => {
     const value = payload.value || 1;
     return state - value;
   }
 });
 
-const incrementWithValidation = change({
+const incrementWithValidation = store.change({
   actionType: 'INCREMENT_WITH_VALIDATION',
   reducer: (state, payload) => {
     return state + payload.value;

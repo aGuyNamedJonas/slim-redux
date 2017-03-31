@@ -1,3 +1,5 @@
+import { change } from './change';
+
 var storeDispatch = null;
 var reducers = {}
 
@@ -5,18 +7,23 @@ export function registerStoreDispatch(dispatch) {
   storeDispatch = dispatch;
 }
 
+export function initSlimRedux(store) {
+  store['change'] = change;
+  registerStoreDispatch(store.dispatch);
+}
+
 export function dispatchStoreAction(action) {
   storeDispatch(action);
 }
 
 export function dispatchErrorAction(actionType, payload) {
-  // storeDispatch({
-  //   type: actionType,
-  //   error: true,
-  //   payload: payload,
-  // })
+  storeDispatch({
+    type: actionType,
+    error: true,
+    payload: payload,
+  })
 
-  console.log(`***Error action triggered: \n ${JSON.stringify({
+  console.error(`***Error action triggered: \n ${JSON.stringify({
     type: actionType,
     error: true,
     payload: payload,
@@ -30,13 +37,11 @@ export function getReducer(actionType) {
     return null;
 }
 
-// Warning: This overwrites any existing change action handlers
 export function registerReducer(actionType, reducer, inputValidation) {
   const newReducer = {
     reducer,
     inputValidation,
   }
 
-  // Since functions can't be checked for equality, instead of calling connect() all the time, the returned function should be used instead
   reducers[actionType] = newReducer;
 }
