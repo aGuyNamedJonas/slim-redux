@@ -15,8 +15,7 @@ const increment = change({
   reducer: (state, payload, action) => {
     const value = payload.value || 1;
     return state + value;
-  },
-  registerOnly: true,
+  }
 });
 
 const decrement = change({
@@ -24,22 +23,40 @@ const decrement = change({
   reducer: (state, payload, action) => {
     const value = payload.value || 1;
     return state - value;
-  },
-  registerOnly: true,
+  }
 });
 
 const anonymousIncrement = change({
   reducer: (state, payload) => {
     const value = payload.value || 1;
     return state - value;
-  },
-  registerOnly: true
+  }
 });
 
-increment({value: 20});
+const incrementWithValidation = change({
+  actionType: 'INCREMENT_WITH_VALIDATION',
+  reducer: (state, payload) => {
+    return state + payload.value;
+  },
+  payloadValidation: (payload, accept, reject) => {
+    if(!payload || !payload.value)
+      return reject({
+        msg: 'No parameters given or no "value" attribute in parameters provided!',
+        params: payload
+      });
+    else
+      return accept();
+  }
+})
+
+increment({value: 10});
 increment({value: 10});
 
-decrement({value: 50});
-decrement({value: 100});
+decrement({value: 10});
+decrement({value: 20});
 
-anonymousIncrement({value: 100});
+anonymousIncrement({value: 5});
+
+incrementWithValidation({value: 5})
+// Should now be 0
+incrementWithValidation({})
