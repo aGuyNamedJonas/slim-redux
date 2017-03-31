@@ -1,5 +1,5 @@
-import { createSlimReduxReducer } from './src/slimReduxReducer';
-import { initSlimRedux } from './src/slimRedux';
+import { createSlimReduxReducer } from './slimReduxReducer';
+import { initSlimRedux } from './slimRedux';
 
 export {
   createSlimReduxReducer,
