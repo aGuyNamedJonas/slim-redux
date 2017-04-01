@@ -6,7 +6,8 @@ slim-redux is an alternative interface for redux which aims at making working wi
 The complete redux compatability is important as one of the design goals of `slim-redux` was to improve the redux experience for teams without forcing them to refactor their state-management code or change their redux setups dramatically.
 
 ### Feedback wanted
-I sincerely hope that `slim-redux` can help improve your working experience with redux. To further improve `slim-redux` please let me know if you have any questions / suggestions / frustrations by opening an issue or getting in touch on twitter [@aGuyNamedJonas](twitter.com/aguynamedjonas)
+I sincerely hope that `slim-redux` can help improve your working experience with redux.  
+To further improve `slim-redux` please let me know if you have any questions / suggestions / frustrations by opening an issue or getting in touch on twitter [@aGuyNamedJonas](https://twitter.com/aguynamedjonas)
 
 **React bindings are in the works :)**
 
