@@ -6,7 +6,7 @@ slim-redux is an alternative interface for redux which aims at making working wi
 The complete redux compatability is important as one of the design goals of `slim-redux` was to improve the redux experience for teams without forcing them to refactor their state-management code or change their redux setups dramatically.
 
 ### Feedback wanted
-I sincerely hope that `slim-redux` can help improve your working experience with redux. If it does and you notice things that could work better, or if you run into any issues or limitations when working with `slim-redux`, please raise an issue and let me know about it, thanks!
+I sincerely hope that `slim-redux` can help improve your working experience with redux. To further improve `slim-redux` please let me know if you have any questions / suggestions / frustrations by opening an issue or getting in touch on twitter [@aGuyNamedJonas](twitter.com/aguynamedjonas)
 
 **React bindings are in the works :)**
 
@@ -14,7 +14,7 @@ I sincerely hope that `slim-redux` can help improve your working experience with
 Redux is awesome but the decoupled nature of defining actions and reducers can have its challenges.
 `slim-redux` attempts to simplify working with redux by coupling action and reducer definitions in singular `change` statements:
 
-```
+```javascript
 const addTodo = change({
   actionType: 'ADD_TODO',
   reducer: (state, payload, action) => {
@@ -24,7 +24,7 @@ const addTodo = change({
 ```
 
 `change()` returns a *change trigger function* (it will trigger a change in the store) which takes a single *payload* parameter and will dispatch the *ADD_TODO* action when called:
-```
+```javascript
 addTodo({id: 2, label: 'CHANGE THE WORLD'});
 // will dispatch the following FSA (flux standard action) compliant action to the reducer:
 // {type: 'ADD_TODO', payload: {id: 2, label: 'CHANGE THE WORLD'}}
@@ -39,7 +39,7 @@ In our example the reducer that we defined in the `change()` statement will proc
 `npm install --save slim-redux`
 
 # Getting started
-```
+```javascript
 import { createStore } from 'redux';
 import { createSlimReduxReducer, initSlimRedux } from 'slim-redux';
 
@@ -96,7 +96,7 @@ While the proposed `change()` function is the centerpiece of `slim-redux` there 
 To give the *change-trigger function* the possibility to check the passed in arguments before triggering an action in the store, an optional *inputValidation* function can be passed in the *change()* function.  
 The *inputValidation* function can determine whether the action will be triggered or not:
 
-```
+```javascript
 const incrementWithValidation = store.change({
   actionType: 'INCREMENT_WITH_VALIDATION',
   reducer: (state, payload) => {
@@ -120,7 +120,7 @@ See the [validation example](./examples/validation.js).
 
 ## Anonymous changes
 To make store changes even more accessible and simpler to trigger, when calling the `change()` function, the `actionType` parameter can be omitted. The only required parameter is the `reducer`:  
-```
+```javascript
 const addTodoAnonymous = change({
   reducer: (state, payload, action) => {
     return [...state, {id: payload.id, label: payload.label, checked: false}];
@@ -128,7 +128,7 @@ const addTodoAnonymous = change({
 });
 ```
 Calling `addTodoAnonymous()` will now trigger an action of the type `__ANONYMOUS-CHANGE__`:
-```
+```javascript
 addTodo({id: 2, label: 'CHANGE THE WORLD'});
 // dispatches the following action:
 // {type: '__ANONYMOUS-CHANGE__', payload: {id: 2, label: 'CHANGE THE WORLD'}}
