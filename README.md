@@ -127,7 +127,7 @@ const addTodoAnonymous = change({
     return [...state, {id: payload.id, label: payload.label, checked: false}];
   }
 });
-```
+```javascript
 Calling `addTodoAnonymous()` will now trigger an action of the type `__ANONYMOUS-CHANGE__`:
 ```javascript
 addTodo({id: 2, label: 'CHANGE THE WORLD'});
