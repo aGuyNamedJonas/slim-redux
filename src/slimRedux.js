@@ -1,7 +1,10 @@
 import { createStore } from 'redux';
 import reduceReducers from 'reduce-reducers';
 
-
+/*
+  (INTERNAL) The slim redux reducer which automatically gets injected into the store instance
+  in createSlimReduxStore().
+*/
 function slimReduxReducer(state, action){
   const actionType = action.type,
         payload    = action.payload,
@@ -14,7 +17,10 @@ function slimReduxReducer(state, action){
     return state;
 }
 
-
+/*
+  (INTERNAL) Performs the payload validation when a change trigger function is called
+  for which a payload validation function was provided.
+*/
 function performPayloadValidation(actionType, actionPayload) {
   const accept    = function() { return {type: 'accept'} },
         reject    = function(msg = '') { return {type: 'reject', payload: msg} },
@@ -28,8 +34,26 @@ function performPayloadValidation(actionType, actionPayload) {
     return {type: 'accept'}
 }
 
+/*
+  Creates a change trigger for the given parameters object. This function is
+  injected into the store instance on createSlimReduxStore(), so please use this
+  by calling store.createChangeTrigger().
 
-// Creates the change triggers (is bound to the redux store instance with initSlimRedux())
+  Returns a change trigger function which takes an object (=action payload) and will
+  run the payloadValidation function (if provided) before dispatching and action to
+  reducers (if validation passed) or an error action (if validation failed).
+
+  The action trigger function when called will return an object specifying the validation results:
+  {type: 'accept'} if validation has passed or no payload validation was provided,
+  {type: 'reject', payload: {...}} if validation failed (payload is additional error information).
+
+  Parameters:
+  - parameters.actionType: The type of action this change trigger function will dispatch (e.g. 'ADD_TODO')
+  - parameters.reducer: The reducer to process action of this action type (can also be from external redux code). Signature: (state, payload, [action]) --> new state
+  - parameters.payloadValidation (optional): A callback function with the signature ({payload}, accept, reject) --> return reject({error payload}) / return accept() (see examples!)
+
+  Returns: A change trigger function with the signature ({actionPayload}) --> {type: 'accept'} / {type: 'reject', payload: {...}}
+*/
 function createChangeTrigger(parameters) {
   const actionType        = parameters.actionType,
         reducer           = parameters.reducer,
@@ -65,7 +89,21 @@ function createChangeTrigger(parameters) {
   }
 }
 
+/*
+  Creates and returns a redux store which is a regular redux store with the slim-redux
+  functionality (the store.createChangeTrigger() function + some internal stuff) injected.
 
+  Since all the slim-redux functionality is directly injected into the store instance,
+  slim-redux is suitable for server side rendering:
+  http://redux.js.org/docs/recipes/ServerRendering.html
+
+  Parameters:
+  - initialState: The initial state of the redux store.
+  - existingRootReducer (optional): Root reducer of already existing redux setup
+  - enhancer (optional): Your regular middleware magic that you would normally pass to createStore() (in redux)
+
+  Returns: A fresh store with some slim-redux functionality injected (mainly: store.createChangeTrigger())
+*/
 export function createSlimReduxStore(initialState, existingRootReducer, enhancer) {
   const defaultExistingReducer = state => state,
         rootReducer            = existingRootReducer || defaultExistingReducer;
@@ -76,7 +114,6 @@ export function createSlimReduxStore(initialState, existingRootReducer, enhancer
   store.createChangeTrigger      = createChangeTrigger;
   store.performPayloadValidation = performPayloadValidation;
   store.slimReduxReducer         = slimReduxReducer;
-  // Stores registered change handlers and later centralized input validation and error handling functions
   store.slimRedux                = {changeTriggers: {}};
 
   // Inject the slimReduxReducer into the store
