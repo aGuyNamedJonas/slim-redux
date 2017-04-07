@@ -1,5 +1,5 @@
-slim-redux
-==========
+slim-redux (beta)
+=================
 
 slim-redux is an alternative interface for redux which aims at making working with redux less decoupled and a lot faster while being 100% redux compatible.  
 
@@ -141,3 +141,11 @@ See the [anonymous example](./examples/anonymous.js).
 In the root of the repository, after running `npm install`, run `npm run build` and then publish the npm module from inside the `/dist` folder.  
 
 **Note to self**: Publish npm module by running `npm run build` and then in the `./dist` folder run `npm version patch` and then `npm publish` (after making sure I'm logged in with `npm login`)
+
+## Todo until production version  
+- [ ] Attach `slimReduxReducer` to the store instance, so that multiple store instances can exist (neccessary for server side rendering?)  
+- [ ] Update README to cover the complete API
+- [ ] Build parameter validation to API (for DEV at least)
+- [ ] Write tests
+- [ ] Allow for central input validation function to be passed to `initSlimRedux` so that testing can happen in one place
+- [ ] Allow for error handling function to be passed in to `initSlimRedux` to make error handling first-class-citizen
