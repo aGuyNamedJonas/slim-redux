@@ -17,6 +17,7 @@ function slimReduxReducer(state, action){
     return state;
 }
 
+
 function performPayloadValidation(actionType, actionPayload) {
   const accept    = function() { return {type: 'accept'} },
         reject    = function(msg = '') { return {type: 'reject', payload: msg} },
@@ -29,6 +30,7 @@ function performPayloadValidation(actionType, actionPayload) {
   else
     return {type: 'accept'}
 }
+
 
 // Creates the change triggers (is bound to the redux store instance with initSlimRedux())
 function createChangeTrigger(parameters) {
@@ -66,20 +68,22 @@ function createChangeTrigger(parameters) {
   }
 }
 
-function createSlimReduxStore(existingRootReducer, initialState, enhancer) {
-  var store = redux.createStore(existingRootReducer, initialState, enhancer);
+
+function createSlimReduxStore(initialState, existingRootReducer, enhancer) {
+  const defaultExistingReducer = state => state,
+        rootReducer            = existingRootReducer || defaultExistingReducer;
+
+  var store = redux.createStore(rootReducer, initialState, enhancer);
 
   // Inject slimRedux related stuff into the store
   store.createChangeTrigger      = createChangeTrigger;
   store.performPayloadValidation = performPayloadValidation;
   store.slimReduxReducer         = slimReduxReducer;
   // Stores registered change handlers and later centralized input validation and error handling functions
-  store.slimRedux                = { changeTriggers: {} };
+  store.slimRedux                = {changeTriggers: {}};
 
   // Inject the slimReduxReducer into the store
-  const enhancedRootReducer = reduceReducers(existingRootReducer, (state, action) => {
-    return store.slimReduxReducer(state, action)
-  });
+  const enhancedRootReducer = reduceReducers(rootReducer, (state, action) => store.slimReduxReducer(state, action));
   store.replaceReducer(enhancedRootReducer);
 
   return store;
@@ -90,7 +94,7 @@ function createSlimReduxStore(existingRootReducer, initialState, enhancer) {
   an action and its corresponding action in one call.
 */
 
-var store = createSlimReduxStore(state => state, 0);
+var store = createSlimReduxStore(0);
 
 store.test = 'HELLO WORLD!';
 

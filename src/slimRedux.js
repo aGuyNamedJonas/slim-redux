@@ -66,20 +66,21 @@ function createChangeTrigger(parameters) {
 }
 
 
-export function createSlimReduxStore(existingRootReducer, initialState, enhancer) {
-  var store = createStore(existingRootReducer, initialState, enhancer);
+export function createSlimReduxStore(initialState, existingRootReducer, enhancer) {
+  const defaultExistingReducer = state => state,
+        rootReducer            = existingRootReducer || defaultExistingReducer;
+
+  var store = createStore(rootReducer, initialState, enhancer);
 
   // Inject slimRedux related stuff into the store
   store.createChangeTrigger      = createChangeTrigger;
   store.performPayloadValidation = performPayloadValidation;
   store.slimReduxReducer         = slimReduxReducer;
   // Stores registered change handlers and later centralized input validation and error handling functions
-  store.slimRedux                = { changeTriggers: {} };
+  store.slimRedux                = {changeTriggers: {}};
 
   // Inject the slimReduxReducer into the store
-  const enhancedRootReducer = reduceReducers(existingRootReducer, (state, action) => {
-    return store.slimReduxReducer(state, action);
-  });
+  const enhancedRootReducer = reduceReducers(rootReducer, (state, action) => store.slimReduxReducer(state, action));
   store.replaceReducer(enhancedRootReducer);
 
   return store;

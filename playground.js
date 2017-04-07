@@ -6,7 +6,7 @@
 import { createStore } from 'redux';
 import { createSlimReduxStore } from './src/index';
 
-var store = createSlimReduxStore(state => state, 0);
+var store = createSlimReduxStore(0);
 
 store.test = 'HELLO WORLD!'
 
