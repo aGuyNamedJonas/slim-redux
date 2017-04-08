@@ -69,17 +69,17 @@ ____
 * [Motivation](#motivation)
 * [API Reference](#api-reference)
 * [Recipes](#recipes)
-  * Bundle change trigger definitions in one file
-  * Use slim-redux in an existing redux setup  
-  * Use payload validation
-  * Register middleware in slim-redux
-  * Build custom middleware to catch payload validation errors
-  * Build centralized payload validation
+  * [Bundle change trigger definitions in one file](#bundle-change-definitions)
+  * [Use slim-redux in an existing redux setup](#existing-redux-setup)
+  * [Use payload validation](#use-payload-validation)
+  * [Register middleware in slim-redux](#register-middleware)
+  * [Build custom middleware to catch payload validation errors](#middleware-validation-errors)
+  * [Build centralized payload validation](#build-centralized-payload-validation)
 * [Examples](#examples)
 * [React Bindings](#react-bindings)
-* [Feedback](#feedback)
-* [Contribute](#contribute)
 * [Future Development](#future-development)
+* [Contribute](#contribute)
+* [Feedback](#feedback)
 * [License](#license)
 
 ____
@@ -244,11 +244,38 @@ For an example of using `payloadValidation` in `createChangeTrigger()` have a lo
 [^ Table of Contents ^](#toc)
 
 ## <a name="recipes"></a>Recipes
+### <a name="bundle-change-definitions"></a>Bundle change trigger definitions in one file
+
+<br><br>
+[^ Table of Contents ^](#toc)
+
+### <a name="existing-redux-setup"></a>Use slim-redux in an existing redux setup
+
+<br><br>
+[^ Table of Contents ^](#toc)
+
+### <a name="use-payload-validation"></a>Use payload validation
+
+<br><br>
+[^ Table of Contents ^](#toc)
+
+### <a name="register-middleware"></a>Register middleware in slim-redux
+
+<br><br>
+[^ Table of Contents ^](#toc)
+
+### <a name="middleware-validation-errors"></a>Build custom middleware to catch payload validation errors
+
+<br><br>
+[^ Table of Contents ^](#toc)
+
+### <a name="build-centralized-payload-validation"></a>Build centralized payload validation
 
 <br><br>
 [^ Table of Contents ^](#toc)
 
 ## <a name="examples"></a>Examples
+The [examples](./examples/README.md) contain code samples for all [Recipes](#recipes) and a little more, check them out [here](./examples/README.md).
 
 <br><br>
 [^ Table of Contents ^](#toc)
@@ -264,6 +291,17 @@ Like `slim-redux`, `slim-redux-react` aims at making working with redux in react
 <br><br>
 [^ Table of Contents ^](#toc)
 
+## <a name="future-development"></a>Future Development
+Not sure yet what will be needed in the future, but I think it could make sense to build the following two additions in the future:
+- [ ] Centralized payload validation (will be passed to `createSlimReduxStore()`)
+- [ ] Centralized error handling for dealing with failed payload validations and other error actions (will also be passed to `createSlimReduxStore()`)
+
+This list will be extended, as feedback comes in, so make sure to make your voice heard! :)
+
+## <a name="contribute"></a>Contribute
+Want to contribute something? That's awesome :) Just open up a pull request or an issue and I'll do my best to try and gauge together with you and whoever else is interested whether your addition makes sense for the project or not.  
+This is a community effort, so any suggestions for improvement are greatly appreciated!
+
 ## <a name="feedback"></a>Feedback
 Got a question, feedback, improvement suggestion, found a bug, wanna share a cool idea?  
 [Create an issue](https://github.com/aGuyNamedJonas/slim-redux/issues/new)
@@ -273,15 +311,6 @@ Got a question, feedback, improvement suggestion, found a bug, wanna share a coo
 [Get in touch on twitter](https://twitter.com/intent/tweet?screen_name=aGuyNamedJonas&text=%23slim-redux%20)  
 
 [(Optional) follow me on twitter (@aGuyNamedJonas)](https://twitter.com/aGuyNamedJonas)
-
-## <a name="contribute"></a>Contribute
-Want to contribute something? That's awesome :) Just open up a pull request or an issue and I'll do my best to try and gauge together with you and whoever else is interested whether your addition makes sense for the project or not.  
-This is a community effort, so any suggestions for improvement are greatly appreciated!
-
-## <a name="future-development"></a>Future Development
-Not sure yet what will be needed in the future, but I think it makes sense to build the following two additions in the future:
-- [ ] Centralized payload validation (will be passed to `createSlimReduxStore()`)
-- [ ] Centralized error handling for dealing with failed payload validations and other error actions (will also be passed to `createSlimReduxStore()`)
 
 ## <a name="license"></a>License
 MIT (just like redux)
