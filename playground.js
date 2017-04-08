@@ -3,12 +3,10 @@
   an action and its corresponding action in one call.
 */
 
-import { createStore } from 'redux';
 import { createSlimReduxStore } from './src/index';
 
+// Create a store with initial state
 var store = createSlimReduxStore(0);
-
-store.test = 'HELLO WORLD!'
 
 // Make sure we see any store changes in the console
 store.subscribe(() =>
