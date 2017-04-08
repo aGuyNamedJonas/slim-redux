@@ -1,10 +1,13 @@
 slim-redux
 ==========
-slim-redux is an alternative way of working with redux that aims at being less overhead-heavy, faster to code, and easier to reason about than your typical redux-setups while being 100% redux compatible.
+[*Jump to Table of Contents*](#toc)  
+slim-redux is an alternative way of working with redux that aims at being less boilerplate-heavy, faster to code, and easier to reason about than your typical redux-setups while being 100% redux compatible.
 
-The core idea is that action and reducer definitions are defined in one place. Triggering store changes is now a simple two step process:
+The core idea is that action and reducer definitions are defined in one place. **Triggering store changes is now a simple two step process**:
 
-**Step #1: Create a change trigger** (aka register an Action + Reducer)  
+### Step #1: Create a change trigger  
+*(aka register an Action + Reducer)*  
+
 ```javascript
 const addTodo = store.createChangeTrigger({
   actionType: 'ADD_TODO',
@@ -20,7 +23,9 @@ const addTodo = store.createChangeTrigger({
 });
 ```
 
-**Step #2: Trigger a change in the store** (aka dispatch an action)  
+### Step #2: Trigger a change in the store
+*(aka dispatch an action)*  
+
 ```javascript
 addTodo({id: 2, text: 'GET MILK', checked: false});
 ```
@@ -33,7 +38,7 @@ Which will be picked up by the reducer we defined in `store.createChangeTrigger(
 
 That was pretty painless right? :)  
 
-**Bonus points: Payload validation**  
+### Bonus points: Payload validation  
 ```javascript
 const addTodo = store.createChangeTrigger({
   actionType: /* ... */,
@@ -286,7 +291,7 @@ As mentioned in the [Motivation](#motivation) chapter, I created `slim-redux` to
 So of course there are also dedicated react bindings:  
 [slim-redux-react](https://github.com/aGuyNamedJonas/slim-redux-react) uses `slim-redux` (= this project) to provide react components with change triggers to modify state and subscriptions (= based on [reselect](https://github.com/reactjs/reselect)) for easy access to state content.  
 
-Like `slim-redux`, `slim-redux-react` aims at making working with redux in react much less overhead-heavy, faster to code, and easier to reason about.
+Like `slim-redux`, `slim-redux-react` aims at making working with redux in react much less boilerplate-heavy, faster to code, and easier to reason about.
 
 <br><br>
 [^ Table of Contents ^](#toc)
