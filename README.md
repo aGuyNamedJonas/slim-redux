@@ -66,7 +66,7 @@ If the payload validation fails however, a [FSA](https://github.com/acdlite/flux
   params: {text: 'Random new todo'} //Notice how the id is missing in the payload!
 }}
 ```
-In the future, there will also be a way to react to error actions directly from within slim-redux, see [Future Development](#future-development).
+Find out how you can react to payload validation errors in the [Build custom middleware to catch payload validation errors](#middleware-validation-errors) recipe.
 ____
 
 # <a name="toc"></a>Table of Contents
