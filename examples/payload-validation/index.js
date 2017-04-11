@@ -1,7 +1,17 @@
 import { createSlimReduxStore } from 'slim-redux';
+import { applyMiddleware } from 'redux';
 
-// Create a store with the initial state of 0
-var store = createSlimReduxStore(0);
+// Middleware that catches payload validation errors
+const payloadValidationErrorCatcher = store => next => action => {
+  if(action.error)
+    console.error(`*** Error while trying to dispatch ${action.type}:\n${JSON.stringify(action.payload, null, 2)}`)
+
+  let result = next(action)
+  return result
+}
+
+// Create a store with the initial state of 0, no existing root reducer, and our error catcher middleware
+var store = createSlimReduxStore(0, null, applyMiddleware(payloadValidationErrorCatcher));
 
 // Make sure we see any store changes in the console
 store.subscribe(() =>
@@ -28,16 +38,13 @@ var decrement = store.createChangeTrigger({
   // trigger function and when validation fails, the action will not be sent
   // to reducers and an error action is emitted instead.
   payloadValidation: (payload, accept, reject) => {
-    if(!payload || !payload.value){
-      console.log('Payload validation FAILED (will return previous state)....')
+    if(!payload || !payload.value)
       return reject({
         msg: 'No parameters given or no "value" attribute in parameters provided!',
         params: payload
       });
-    }else{
-      console.log('Payload validation PASSED....')
+    else
       return accept();
-    }
   }
 });
 
@@ -49,5 +56,5 @@ increment({value: 23});
 decrement({value: 31});
 decrement({value: 11});
 
-// FAILS --> Just returns the previous state
+// FAILS --> Just returns the previous state (and calls our middleware)
 decrement({thisIsAnInvalid: 'payload'})
