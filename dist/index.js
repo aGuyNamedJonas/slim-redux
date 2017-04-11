@@ -14,10 +14,11 @@ var reduceReducers = _interopDefault(require('reduce-reducers'));
 function slimReduxReducer(state, action) {
   var actionType = action.type,
       payload = action.payload,
+      isError = action.error,
       store = this,
       reducer = store.slimRedux.changeTriggers[actionType] ? store.slimRedux.changeTriggers[actionType].reducer : null;
 
-  if (reducer) return reducer(state, payload, action);else return state;
+  if (reducer && !isError) return reducer(state, payload, action);else return state;
 }
 
 /*
