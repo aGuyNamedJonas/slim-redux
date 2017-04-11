@@ -2,7 +2,7 @@
   "author": "Jonas Peeck <jonas.peeck@googlemail.com> (https://twitter.com/aguynamedjonas)",
   "name": "slim-redux",
   "description": "slim-redux is an alternative interface for redux which aims at making working with redux less decoupled and faster while being 100% redux compatible.",
-  "version": "0.0.4",
+  "version": "0.0.7",
   "license": "MIT",
   "repository": {
     "type": "git",
