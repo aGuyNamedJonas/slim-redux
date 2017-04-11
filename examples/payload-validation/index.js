@@ -28,13 +28,16 @@ var decrement = store.createChangeTrigger({
   // trigger function and when validation fails, the action will not be sent
   // to reducers and an error action is emitted instead.
   payloadValidation: (payload, accept, reject) => {
-    if(!payload || !payload.value)
+    if(!payload || !payload.value){
+      console.log('Payload validation FAILED (will return previous state)....')
       return reject({
         msg: 'No parameters given or no "value" attribute in parameters provided!',
         params: payload
       });
-    else
+    }else{
+      console.log('Payload validation PASSED....')
       return accept();
+    }
   }
 });
 
@@ -46,6 +49,5 @@ increment({value: 23});
 decrement({value: 31});
 decrement({value: 11});
 
-// THERE IS A BUG IN HERE SOMEWHERE! CHANGE ACTUALLY TRIGGERS!
-// FAILS
-// decrement({thisIsAnInvalid: 'payload'})
+// FAILS --> Just returns the previous state
+decrement({thisIsAnInvalid: 'payload'})

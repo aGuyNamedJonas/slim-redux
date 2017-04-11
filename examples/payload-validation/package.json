@@ -15,6 +15,6 @@
   "dependencies": {
     "redux": "^3.6.0",
     "rollup": "^0.41.6",
-    "slim-redux": "0.0.6"
+    "slim-redux": "0.0.8"
   }
 }
