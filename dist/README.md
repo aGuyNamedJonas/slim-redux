@@ -66,7 +66,7 @@ If the payload validation fails however, a [FSA](https://github.com/acdlite/flux
   params: {text: 'Random new todo'} //Notice how the id is missing in the payload!
 }}
 ```
-In the future, there will also be a way to react to error actions directly from within slim-redux, see [Future Development](#future-development).
+Find out how you can react to payload validation errors in the [Build custom middleware to catch payload validation errors](#middleware-validation-errors) recipe.
 ____
 
 # <a name="toc"></a>Table of Contents
@@ -79,7 +79,6 @@ ____
   * [Use slim-redux in an existing redux setup](#existing-redux-setup)
   * [Use payload validation](#use-payload-validation)
   * [Build custom middleware to catch payload validation errors](#middleware-validation-errors)
-  * [Build centralized payload validation](#build-centralized-payload-validation)
 * [Examples](#examples)
 * [React Bindings](#react-bindings)
 * [Future Development](#future-development)
@@ -368,25 +367,102 @@ Also make sure to check out the `createSlimReduxStore()` [API reference](https:/
 [^ Table of Contents ^](#toc)
 
 ### <a name="use-payload-validation"></a>Use payload validation
+Payload validation might be hands-down one of the coolest features of slim-redux. In redux you would probably usually want to validate the parameters of your actions in your action creators. But then when you want to dispatch an [error action](https://github.com/acdlite/flux-standard-action#example) you will need middleware again that provides your action creators with the ability to dispatch error actions.  
 
+In slim-redux payload validation for your actions is a first-class citizen:
+```javascript
+var decrement = store.createChangeTrigger({
+  actionType: 'DECREMENT',
+  reducer: (state, payload, action) => {
+    const value = payload.value || 1;
+    return state - value;
+  },
+
+  // Payload validation - notice how it returns either reject() with a message or
+  // accept() to let slim-redux know whether the validation passed or not.
+  payloadValidation: (payload, accept, reject) => {
+    if(!payload || !payload.value)
+      return reject({
+        msg: 'No parameters given or no "value" attribute in parameters provided!',
+        params: payload
+      });
+    else
+      return accept();
+  }
+});
+```
+
+The way payload validation works is that after you call a change trigger function with some values (e.g. `decrement({value: 10})`) the `payloadValidation()` function is called. If the validation is successful, the action gets passed to the reducers.  
+
+If validation fails however, a [FSA compliant error action](https://github.com/acdlite/flux-standard-action#example) is dispatched:  
+
+```javascript
+decrement({thisIsAnInvalid: 'payload'})
+
+/*
+  This will trigger the following (error) action which will not lead to any state changes in the slim-redux reducer:
+
+  {
+    type: 'DECREMENT',
+    error: true,
+    payload: {
+      "msg": "No parameters given or no \"value\" attribute in parameters provided!",
+      "params": {
+        "thisIsAnInvalid": "payload"
+      }
+    }
+  }
+*/
+```
+Neat huh? :) I love this feature, hoping you also dig it!  
+Make sure to check out the example that I took this code from: [payload-validation example](./examples/payload-validation/).
+
+*Make sure to read on to the next recipe to find out how you can react to payload validation errors.*
 
 <br><br>
 [^ Table of Contents ^](#toc)
 
 
 ### <a name="middleware-validation-errors"></a>Build custom middleware to catch payload validation errors
-**TBD, sry didn't get to this yet :)**  
-Let me know on [twitter](https://twitter.com/intent/tweet?screen_name=aGuyNamedJonas&text=%23slim-redux%20) if this is something you could need urgently, or [open a pull request](https://github.com/aGuyNamedJonas/slim-redux/compare) if you can provide what belongs here.
+As discussed in the previous section, payload validation is a built-in, first-class citizen in slim-redux. What's not included right now is a way to register a function handling all payload validation errors.  
+
+Centralized payload validation error handling is on the roadmap for [future development](#future-development), but for now you can already get that by writing a small piece of middleware:
+
+```javascript
+// Middleware that catches payload validation errors
+// Go ahead and give it a nicer name if you like :)
+const payloadValidationErrorCatcher = store => next => action => {
+  if(action.error)
+    console.error(`*** Error while trying to dispatch ${action.type}:\n${JSON.stringify(action.payload, null, 2)}`)
+
+  let result = next(action)
+  return result
+}
+
+// Include the middleware in your slim-redux setup
+var store = createSlimReduxStore(0, null, applyMiddleware(payloadValidationErrorCatcher));
+```
+
+
+Now when calling a change trigger which fails the payload validation and emits an error action, you will see something like the following in your console:
+```
+*** Error while trying to dispatch DECREMENT:
+{
+  "msg": "No parameters given or no \"value\" attribute in parameters provided!",
+  "params": {
+    "thisIsAnInvalid": "payload"
+  }
+}
+```
+Check out the full example that this snippet was taken from: [payload-validation example](./examples/payload-validation/).  
+
+If you want to change your store according to a payload validation error occuring, you could either `dispatch()` and action from within the middleware (not recommended) or better yet: Just use a change trigger!  
+
+Read more [on middleware in the redux docs](http://redux.js.org/docs/api/applyMiddleware.html#applymiddlewaremiddleware) to find out more about the capabilities of middleware.
 
 <br><br>
 [^ Table of Contents ^](#toc)
 
-### <a name="build-centralized-payload-validation"></a>Build centralized payload validation
-**TBD, sry didn't get to this yet :)**  
-Let me know on [twitter](https://twitter.com/intent/tweet?screen_name=aGuyNamedJonas&text=%23slim-redux%20) if this is something you could need urgently, or [open a pull request](https://github.com/aGuyNamedJonas/slim-redux/compare) if you can provide what belongs here.
-
-<br><br>
-[^ Table of Contents ^](#toc)
 
 ## <a name="examples"></a>Examples
 #### 🢂 [Examples folder](./examples/README.md)
@@ -397,7 +473,7 @@ Let me know on [twitter](https://twitter.com/intent/tweet?screen_name=aGuyNamedJ
 ## <a name="react-bindings"></a>React Bindings
 Yes, there are react bindings- and they were written with the same intentions as slim-redux (less boilerplate, fast to use, easy to reason about):
 
-### [slim-redux-react](https://github.com/aGuyNamedJonas/slim-redux-react)
+### 🢂 [slim-redux-react](https://github.com/aGuyNamedJonas/slim-redux-react)
 
 <br><br>
 [^ Table of Contents ^](#toc)
