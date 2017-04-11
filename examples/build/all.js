@@ -1,16 +1,18 @@
+'use strict';
+
+var redux = require('redux');
+var slimRedux = require('slim-redux');
+
 /*
   All features of slim redux in one place - including validation and anonymous changes
 */
 
-import { createStore } from 'redux';
-import { createSlimReduxReducer, initSlimRedux } from 'slim-redux';
-
-var store = createStore(createSlimReduxReducer(0));
-initSlimRedux(store);
+var store = redux.createStore(slimRedux.createSlimReduxReducer(0));
+slimRedux.initSlimRedux(store);
 
 store.subscribe(() =>
   console.log(store.getState())
-)
+);
 
 const increment = store.change({
   actionType: 'INCREMENT',
@@ -49,7 +51,7 @@ const incrementWithValidation = store.change({
     else
       return accept();
   }
-})
+});
 
 increment({value: 10});
 increment({value: 10});
@@ -59,5 +61,5 @@ decrement({value: 20});
 
 anonymousIncrement({value: 5});
 
-incrementWithValidation({value: 5})
-incrementWithValidation({})
+incrementWithValidation({value: 5});
+incrementWithValidation({});

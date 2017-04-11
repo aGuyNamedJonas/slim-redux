@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "rollup -i all.js -o ./build/all.js -f cjs && rollup -i anonymous.js -o ./build/anonymous.js -f cjs && rollup -i simple.js -o ./build/simple.js -f cjs && rollup -i validation.js -o ./build/validation.js -f cjs"
+    "build": "rollup -i index.js -o ./build/index.js -f cjs",
+    "start": "rollup -i index.js -o ./build/index.js -f cjs && node ./build/index.js"
   },
   "author": "",
   "license": "ISC",
@@ -13,6 +14,7 @@
   },
   "dependencies": {
     "redux": "^3.6.0",
-    "slim-redux": "0.0.1"
+    "rollup": "^0.41.6",
+    "slim-redux": "0.0.6"
   }
 }

@@ -1,22 +1,24 @@
+'use strict';
+
+var redux = require('redux');
+var slimRedux = require('slim-redux');
+
 /*
   The most basic example of using slim-redux - using change() statements to register
   an action and its corresponding action in one call.
 */
 
-import { createStore } from 'redux';
-import { createSlimReduxReducer, initSlimRedux } from 'slim-redux';
-
 // createSlimReduxReducer([initialState]) returns the slim-redux reducer.
 // If you have a rootReducer, make sure to add the slim-redux reducer there!
-var store = createStore(createSlimReduxReducer(0));
+var store = redux.createStore(slimRedux.createSlimReduxReducer(0));
 
 // Add the change() function to the store
-initSlimRedux(store);
+slimRedux.initSlimRedux(store);
 
 // Make sure we see any store changes in the console
 store.subscribe(() =>
   console.log(store.getState())
-)
+);
 
 // Register a change with the actionType 'INCREMENT' and the appropriate reducer.
 // This returns a change-trigger function (see below)
