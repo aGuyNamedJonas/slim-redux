@@ -1,5 +1,8 @@
 slim-redux
 ==========
+>  🢂 Watch on Youtube: [**slim-redux-react in action (DEMO) [45 min]**](https://youtu.be/JvN2Jr9dMSE)  
+> 🢂 Read on Medium: [**Introducing slim-redux-react — a faster, more concise way of building redux based react apps [6 min]**](https://medium.com/@aGuyNamedJonas/introducing-slim-redux-react-a-faster-more-concise-way-of-building-redux-based-react-apps-bed14f7c88bf)
+
 [*Jump to Table of Contents*](#toc)  
 slim-redux is an alternative way of working with redux that aims at being less boilerplate-heavy, faster to code, and easier to reason about than your typical redux-setups while being 100% redux compatible.
 
