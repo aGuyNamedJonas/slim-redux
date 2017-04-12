@@ -3,7 +3,7 @@
   "name": "slim-redux",
   "description": "Alternative interface for redux which aims to be less boilerplate, faster to code, and easier to reason about by bundling action and reducer definitions in one place. 100% redux compatible!",
   "keywords": ["redux", "alternative", "flux", "state", "fsa"],
-  "version": "0.0.10",
+  "version": "0.0.11",
   "license": "MIT",
   "repository": {
     "type": "git",
