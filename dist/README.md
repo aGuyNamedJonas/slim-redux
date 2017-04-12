@@ -465,7 +465,7 @@ Read more [on middleware in the redux docs](http://redux.js.org/docs/api/applyMi
 
 
 ## <a name="examples"></a>Examples
-#### 🢂 [Examples folder](./examples/README.md)
+#### 🢂 [Examples folder](./examples)
 
 <br><br>
 [^ Table of Contents ^](#toc)
