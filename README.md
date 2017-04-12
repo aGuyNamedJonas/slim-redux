@@ -145,7 +145,7 @@ Simple, ey? For more advanced stuff, see the [Examples](#examples) and the [Reci
 ## <a name="motivation"></a>Motivation
 Time for a possibly somewhat embarrassing truth: The decoupled nature of typical redux setups confuses the hell out of me.  
 
-The simple act of adding an item to a todo list in the official [TodoMVC example](https://github.com/reactjs/redux/tree/master/examples/todomvc) relies on five different files (action constants, action creator, reducer, root reducer, react-redux connect).  
+The simple act of adding an item to a todo list in the official [TodoMVC example](./examples) relies on five different files (action constants, action creator, reducer, root reducer, react-redux connect).  
 
 While decoupling usually is the best weapon for tackling complexity, with redux (and react-redux) it always confused me that there is so much overhead for ultimately making an object change (the reducer) with a name on it (the `ADD_TODO` action).
 
