@@ -114,3 +114,8 @@ const store = createSlimReduxStore({todos:[]});
 // trigger and will lead to a new todo which is persitetd to the server
 addTodoServerSync('Get Milk');
 ```
+
+### store.registerChangeTrigger()
+**(BREAKING CHANGE - not part of the API anymore!)** It's no longer neccessary to register change triggers before using them. We might deliver a middleware in the future which would have a similiar functionality to `registerChangeTrigger()` in that it would allow users to have change triggers handle actions dispatched from outside of slim-redux.
+
+That's probably not very much needed though, as slim-redux allows you to use it alongside existing redux setups, and as long as those can work next to each other and don't have to work *with* each other, the exisiting slim-redux API should serve you great!
