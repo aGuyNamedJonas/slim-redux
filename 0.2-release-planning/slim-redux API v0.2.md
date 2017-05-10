@@ -5,7 +5,7 @@
 **Parameters:**
 - `initialState`: The initial state of the store
 - `options`: Object with the following (all optional!) options
-  - `rootReducer: (default=undefined)` Existing root reducer, in case slim-redux is used alongside an existing redux setup. Again: This is optional, slim-redux does not make use of root reducers.
+  - `rootReducer: (default=dummyReducer)` Existing root reducer, in case slim-redux is used alongside an existing redux setup. Again: This is optional, slim-redux does not make use of root reducers.
   - `middleware: (default=undefined)` Middleware you might want to install (like the redux devtools browser extension)
   - `disableActionDispatch: (default=false)` When set to true, change triggers will not dispatch any actions, only apply their reducer function. This could be useful for production builds.
   - `disableGlobalStore: (default=false)` When set to true, the created store instance will not be saved in the global scope. This means that you will have to manually pass the store instance to change triggers when calling them. This might be useful for server side rendering or when testing etc.
