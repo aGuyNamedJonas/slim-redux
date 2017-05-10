@@ -24,4 +24,23 @@ describe('Change triggers', () => {
   // });
   //
   // test('change trigger reducers are applied before the action will get dispatched', () => {});
+
+  // test('when disableActionDispatch=true, change triggers do not dispatch actions', () => {
+  //   let actionType = null;
+  //   // Dummy middleware, intercepting the action type
+  //   const existingMiddleware = store => next => action => {
+  //     actionType = action.type;
+  //     let result = next(action)
+  //     return result
+  //   }
+  //
+  //   let store = createSlimReduxStore(INITIAL_STATE, {
+  //     middleware: applyMiddleware(existingMiddleware),
+  //   });
+  //
+  //   store.dispatch({type: INCREMENT});
+  //
+  //   // Check whether our dummy middleware could successfully intercept the dispatched action
+  //   expect(actionType).toEqual(INCREMENT);
+  // });
 });

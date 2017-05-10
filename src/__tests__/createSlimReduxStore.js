@@ -1,9 +1,6 @@
 import { createSlimReduxStore } from '../createSlimReduxStore';
 import { applyMiddleware } from 'redux';
 
-// Make the global GLOBAL global
-global.GLOBAL = global;
-
 const INITIAL_STATE     = 0,
       INCREMENTED_STATE = 1,
       INCREMENT         = 'INCREMENT';
@@ -29,8 +26,8 @@ describe('createSlimReduxStore() (default behavior)', () => {
   });
 
   test('sets the window global variable which points to GLOBAL', () => {
-    expect(GLOBAL).toHaveProperty('window');
-    expect(GLOBAL).toEqual(GLOBAL.window);
+    expect(global).toHaveProperty('window');
+    expect(global).toEqual(global.window);
   });
 
   test('makes store available in the global scope under window.store', () => {
@@ -49,6 +46,16 @@ describe('createSlimReduxStore() (default behavior)', () => {
 });
 
 describe('createSlimReduxStore() (error / special cases)', () => {
+  test('throws an error when initialState is null or undefined', () => {
+    expect(() => {
+      let storeFails = createSlimReduxStore(null);
+    }).toThrow();
+
+    expect(() => {
+      let storeFails = createSlimReduxStore(undefined);
+    }).toThrow();
+  });
+
   test('throws error when more than two arguments are provided', () => {
     expect(() => {
       let storeFails = createSlimReduxStore(INITIAL_STATE, {}, 'should not accept this third parameter');
@@ -89,25 +96,6 @@ describe('createSlimReduxStore() (error / special cases)', () => {
   });
 
   test('value for middleware option in createSlimReduxStore() will be used as middleware', () => {
-    let actionType = null;
-    // Dummy middleware, intercepting the action type
-    const existingMiddleware = store => next => action => {
-      actionType = action.type;
-      let result = next(action)
-      return result
-    }
-
-    let store = createSlimReduxStore(INITIAL_STATE, {
-      middleware: applyMiddleware(existingMiddleware),
-    });
-
-    store.dispatch({type: INCREMENT});
-
-    // Check whether our dummy middleware could successfully intercept the dispatched action
-    expect(actionType).toEqual(INCREMENT);
-  });
-
-  test('when disableActionDispatch=true, change triggers do not dispatch actions', () => {
     let actionType = null;
     // Dummy middleware, intercepting the action type
     const existingMiddleware = store => next => action => {
