@@ -196,10 +196,12 @@ Got a question, feedback, improvement suggestion, found a bug, wanna share a coo
 
 ## <a name="change-log"></a>Change Log
 ### 0.2 release (May 2017)
-* stuff we changed
-* stuff we changed
-* stuff we changed
-* stuff we changed
+* createSlimReduxStore()
+  * Now takes two arguments: Initial state (mandatory) and an options object (optional)
+  * Arguments & options (keys & values) are extensively checked when calling this function to ensure correct use
+  * Completely covered by unit tests, which were created before the implementation (TDD)
+  * Puts the created store instance into global scope by default (window.store, sets global.window = global)
+  * Does not create an internal reducer anymore, v0.2 of slim-redux is root-reducer free!
 
 ## <a name="license"></a>License
 MIT
