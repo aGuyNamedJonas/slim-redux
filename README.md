@@ -1,75 +1,8 @@
 slim-redux
 ==========
->  🢂 Watch on Youtube: [**slim-redux-react in action (DEMO) [45 min]**](https://youtu.be/JvN2Jr9dMSE)  
-> 🢂 Read on Medium: [**Introducing slim-redux-react — a faster, more concise way of building redux based react apps [6 min]**](https://medium.com/@aGuyNamedJonas/introducing-slim-redux-react-a-faster-more-concise-way-of-building-redux-based-react-apps-bed14f7c88bf)
 
 [*Jump to Table of Contents*](#toc)  
-slim-redux is an alternative way of working with redux that aims at being less boilerplate-heavy, faster to code, and easier to reason about than your typical redux-setups while being 100% redux compatible.
 
-The core idea is that action and reducer definitions are defined in one place. **Triggering store changes is now a simple two step process**:
-
-### Step #1: Create a change trigger  
-*(aka register an Action + Reducer)*  
-
-```javascript
-const addTodo = store.createChangeTrigger({
-  actionType: 'ADD_TODO',
-  reducer: (state, payload, action) => {
-    return {
-      ...state,
-      todos: [
-        ...state.todos,
-        {id: payload.id, text: payload.text, checked: false}
-      ]
-    }
-  }
-});
-```
-
-### Step #2: Trigger a change in the store
-*(aka dispatch an action)*  
-
-```javascript
-addTodo({id: 2, text: 'GET MILK', checked: false});
-```
-
-This will trigger a [FSA](https://github.com/acdlite/flux-standard-action) compliant action to the reducers:  
-``` javascript
-{type: 'ADD_TODO', payload: {id: 2, text: 'GET MILK', checked: false}}
-```
-Which will be picked up by the reducer we defined in `store.createChangeTrigger({...})` and all other reducers reacting to this action type.    
-
-That was pretty painless right? :)  
-
-### Bonus points: Payload validation  
-```javascript
-const addTodo = store.createChangeTrigger({
-  actionType: /* ... */,
-  reducer: /* ... */,
-  payloadValidation: (payload, accept, reject) => {
-    if(!payload || !payload.id || !payload.text)
-      return reject({
-        msg: 'Not all parameters provided for ADD_TODO!',
-        params: payload
-      });
-    else
-      return accept();
-  }  
-});
-```
-slim-redux allows you to provide a payload validation function when registering a change trigger.  
-
-Anytime you call a change trigger with a payload validation, the validation gets run and if successful will dispatch the desired action as usual.
-
-If the payload validation fails however, a [FSA](https://github.com/acdlite/flux-standard-action) compliant error action is dispatched instead:
-
-``` javascript
-{type: 'ADD_TODO', error: true, payload: {
-  msg: 'Not all parameters provided for ADD_TODO!',
-  params: {text: 'Random new todo'} //Notice how the id is missing in the payload!
-}}
-```
-Find out how you can react to payload validation errors in the [Build custom middleware to catch payload validation errors](#middleware-validation-errors) recipe.
 ____
 
 # <a name="toc"></a>Table of Contents
@@ -77,391 +10,155 @@ ____
 * [Motivation](#motivation)
 * [API Reference](#api-reference)
 * [Recipes](#recipes)
-  * [Bundle change trigger definitions in one file](#bundle-change-definitions)
-  * [Namespace change trigger definitions](#namespace-change-triggers)
-  * [Use slim-redux in an existing redux setup](#existing-redux-setup)
-  * [Use payload validation](#use-payload-validation)
-  * [Build custom middleware to catch payload validation errors](#middleware-validation-errors)
 * [Examples](#examples)
 * [React Bindings](#react-bindings)
 * [Future Development](#future-development)
 * [Contribute](#contribute)
 * [Feedback](#feedback)
+* [Change Log](#change-log)
 * [License](#license)
 
 ____
 
 ## <a name="quick-start"></a>Quick Start
-Start by adding slim-redux to your project: `npm install --save slim-redux`.
 
-```javascript
-/*
-  The most basic example of using slim-redux - using createChangeTrigger() statements to register
-  an action and its corresponding action in one call.
-*/
-
-import { createSlimReduxStore } from 'slim-redux';
-
-// Create a store with initial state
-var store = createSlimReduxStore(0);
-
-// Make sure we see any store changes in the console
-store.subscribe(() =>
-  console.log(store.getState())
-)
-
-// Register a change with the actionType 'INCREMENT' and the appropriate reducer.
-// This returns a change-trigger function (see below)
-const increment = store.createChangeTrigger({
-  actionType: 'INCREMENT',
-  reducer: (state, payload, action) => {
-    const value = payload.value || 1;
-    return state + value;
-  }
-});
-
-// Note that the hereby registered reducer would also process 'DECREMENT' actions
-// from the rest of your redux code.
-const decrement = store.createChangeTrigger({
-  actionType: 'DECREMENT',
-  reducer: (state, payload, action) => {
-    const value = payload.value || 1;
-    return state - value;
-  }
-});
-
-// Trigger a store-change - that is: Dispatch the action:
-// {type: 'INCREMENT', payload: {value: 10}}
-increment({value: 10});
-increment({value: 23});
-
-decrement({value: 31});
-decrement({value: 11});
-
-```
-
-Simple, ey? For more advanced stuff, see the [Examples](#examples) and the [Recipes](#recipes) and make sure to check out the [API Reference](#api-reference).  
 
 <br><br>
 [^ Table of Contents ^](#toc)
 
 ## <a name="motivation"></a>Motivation
-Time for a possibly somewhat embarrassing truth: The decoupled nature of typical redux setups confuses the hell out of me.  
 
-The simple act of adding an item to a todo list in the official [TodoMVC example](https://github.com/reactjs/redux/tree/master/examples/todomvc) relies on five different files (action constants, action creator, reducer, root reducer, react-redux connect).  
-
-While decoupling usually is the best weapon for tackling complexity, with redux (and react-redux) it always confused me that there is so much overhead for ultimately making an object change (the reducer) with a name on it (the `ADD_TODO` action).
-
-So the goal was to create something that is 100% redux compatible, and seemlessly fits into existing redux setups, to help teams work more efficiently with redux while not having to refactor their entire state management system.  
-
-I also created react bindings which work with change triggers and subscriptions (powered by [reselect](https://github.com/reactjs/reselect)) for accessing the state.  
-
-Go check them out: [slim-redux-react](https://github.com/aGuyNamedJonas/slim-redux-react).
 
 <br><br>
 [^ Table of Contents ^](#toc)
 
-## <a name="api-reference"></a>API Reference
-### createSlimReduxStore(initialState, [existingRootReducer], [enhancer])
-Creates and returns a redux store which is a regular redux store with the slim-redux
-functionality (the `store.createChangeTrigger()` function + some internal stuff) injected.
-
-Since all the slim-redux functionality is directly injected into the store instance,
-slim-redux is suitable for server side rendering:
-http://redux.js.org/docs/recipes/ServerRendering.html
+## <a name="api-reference"></a>API Reference (API v. 0.2)
+### createSlimReduxStore(initialState, options)
+**Description:** Creates and initializes the slim-redux store which is actually a redux store injected with some slim-redux functionality. This also automatically saves the store instance in the global scope, so that change triggers have access to it. You can enable this in the options.
 
 **Parameters:**
-- *initialState*: The initial state of the redux store.
-- *existingRootReducer (optional)*: Root reducer of already existing redux setup
-- *enhancer (optional)*: Your regular middleware magic that you would normally pass to createStore() (in redux)
+- `initialState`: The initial state of the store
+- `options`: Object with the following (all optional!) options
+  - `rootReducer: (default=dummyReducer)` Existing root reducer, in case slim-redux is used alongside an existing redux setup. Again: This is optional, slim-redux does not make use of root reducers.
+  - `middleware: (default=undefined)` Middleware you might want to install (like the redux devtools browser extension)
+  - `disableActionDispatch: (default=false)` When set to true, change triggers will not dispatch any actions, only apply their reducer function. This could be useful for production builds.
+  - `disableGlobalStore: (default=false)` When set to true, the created store instance will not be saved in the global scope. This means that you will have to manually pass the store instance to change triggers when calling them. This might be useful for server side rendering or when testing etc.
 
-**Returns:** A fresh store with some slim-redux functionality injected (mainly: `store.createChangeTrigger()`)
+**Returns:**  
+Slim-redux store instance which is a redux store, injected with slim-redux functionality.
 
 **Example:**  
 ```javascript
-import { createSlimReduxStore } from 'slim-redux';
+import { createSlimReduxStore } from 'slim-redux'
 
-// Create a store with initial counter state = 0
-// This automatically injects the create slim-redux reducer and exposes store.createChangeTrigger()
-var store = createSlimReduxStore(0);
-
-// store is a regular redux store with slim-redux, you can subscribe to it like to a regular redux store:
-store.subscribe(() =>
-  console.log(store.getState())
-)
-
-// With slim-redux initialized you can then go ahead and register change triggers...
-const increment = store.createChangeTrigger({/* ... */});
-
-// And use them to make state modifications
-increment({value: 10});
+// Creating a slim-redux store with initial state and devtools installed
+const store = createSlimReduxStore({todos:[]}, {
+  middleware: window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
+});
 ```
-For more advanced use of `createSlimReduxStore()` have a look at the recipes: [Recipes](#recipes).
 
-### store.createChangeTrigger(parameters)
-Creates a change trigger for the given parameters object. This function is
-injected into the store instance through `createSlimReduxStore()`, so please use this
-by calling `store.createChangeTrigger()`.
+### changeTrigger(actionType, reducer, [{store: storeInstance}])
+**Description:** Creates a side-effect free (pure) change trigger. Once a change trigger was created, it can be used directly by calling it as a function which will invoke the reducer function (and provide it access to the state) and then dispatch the action, to allow external code listening for the particular action type to react to it.
 
-Returns a change trigger function which takes an object (= action payload) and will
-run the `payloadValidation` function (if provided) before dispatching and action to
-reducers (if validation passed) or an error action (if validation failed).
+**Parameters:**  
+* `actionType`: String which contains the action type of this change trigger. Note that calling a change trigger will first invoke the reducer function on the store, and then dispatch the action with this actionType, and the parameters of the change trigger call as the action payload. The dispatch of the action is so that you can continue using tools that help you debug your redux code. This behavior can be turned off for production builds though.
+* `reducer`: Function which will be used to create the next version of the state when this change trigger is called. The parameters are whatever you want to pass in to your change trigger, but note that the state is already provided to the reducer function. **The signature of the reducer function can be empty!**
+* `(optional) Object with store instance in it` In case you set the `disableGlobalStore=true` option when you invoked `createSlimReduxStore()` you have to pass the store instance to your change triggers manually.
+**Example:** `addTodo('Get Milk', {store: storeInstance})`
 
-The action trigger function when called will return an object specifying the validation results:  
-`{type: 'accept'}` if validation has passed or no payload validation was provided,  
-`{type: 'reject', payload: {...}}` if validation failed (payload is additional error information).
-
-**Parameters:**
-- *parameters.actionType*: The type of action this change trigger function will dispatch (e.g. 'ADD_TODO')
-- *parameters.reducer*: The reducer to process action of this action type (can also be from external redux code). Signature: (state, payload, [action]) --> new state
-- *parameters.payloadValidation (optional)*: A callback function with the signature ({payload}, accept, reject) --> return reject({error payload}) / return accept() (see examples!)
-
-**Returns:** A change trigger function with the signature ({actionPayload}) --> {type: 'accept'} / {type: 'reject', payload: {...}}
+**Returns:**  
+Change trigger function that has the signature of the reducer function and when called will first invoke the reducer function on the store state and then dispatch the appropriate action.
 
 **Example:**  
 ```javascript
-import { createSlimReduxStore } from 'slim-redux';
+// changes/todo.js
+import { changeTrigger } from 'slim-redux';
 
-// Create a store with initial state
-var store = createSlimReduxStore(0);
-
-// Make sure we see any store changes in the console
-store.subscribe(() =>
-  console.log(store.getState())
-)
-
-// create the change trigger for the action type 'INCREMENT'
-const increment = store.createChangeTrigger({
-  actionType: 'INCREMENT',
-  reducer: (state, payload, action) => {
-    const value = payload.value || 1;
-    return state + value;
-  }
+export const addTodo = changeTrigger('ADD_TODO', (label) => {
+  // Reducer function has access to the state
+  const newId = state.todos.map((max, todo) => Math.max(max, todo,id), 0) + 1;
+  return {
+    ...state,
+    todos: [
+      ...state.todos,
+      {id: newId, label: label, checked: false},
+    ]
+  };
 });
 
-// Trigger a store-change - that is: Dispatch the action:
-// {type: 'INCREMENT', payload: {value: 10}}
-increment({value: 10});
-increment({value: 23});
+// main.js
+import { createSlimReduxStore } from 'slim-redux'
+import { addTodo } from './changes/todo';
+
+const store = createSlimReduxStore({todos:[]});
+
+// Notice how we don't need to initialize anything anymore,
+// we just call the change trigger to use it. The store is
+// automatically placed in the global scope
+addTodo('Get Milk');
 ```
 
-For an example of using `payloadValidation` in `createChangeTrigger()` have a look at the recipes: [Recipes](#recipes).
+**Note on implementation:** The optional store which can be passed in, is probably best implemented by setting `this.store` for the reducer function before invoking it. So the change trigger functions should be implemented in a way that they first check `this.store`, then `window.store` (on node.js we should just do `GLOBAL.window = GLOBAL` to be able to use the window object universally).
+
+### asyncChangeTrigger(changeTriggers, triggerFunction, [{store: storeInstance}])
+**Description:** Async change triggers allow you to execute network requests, or other asynchronous functions and then call change triggers whenever needed. This is to preserve the nature of change triggers which are supposed to be side-effect free actual state changes, but at the same time provides with a convenient way of dealing with async state changes.  
+Note that this does not have an action type, as only change triggers have an action type. This is to make sure that whenever you see an action in your redux devtools, they actually represent a state change, not any pseudo actions that are only there to trigger async code.
+
+**Parameters:**  
+* `changeTriggers`: Object which contains all the change triggers that this async change trigger needs. Can be regular change triggers or async change triggers. Object keys are the names under which the change triggers will be available inside the `triggerFunction`, the value are the change triggers themselves. It's recommended to use the ES6 shorthand - **Example**:   
+`export const addTodoServerSync = asynChangeTrigger({ addTodo, addTodoSuccess, addTodoFailed }, (name) => { /* ... */ })`
+* `triggerFunction`: A function which receives all the parameters that this async change trigger needs, and will have access to the state and to the change triggers from the first argument. This is called the trigger function, because unlike in the `changeTrigger()` API call, this function is not a reducer. The only way for it to change state is to invoke change triggers. **The signature of this function can be empty!**
+* `(optional) Object with store instance in it` In case you set the `disableGlobalStore=true` option when you invoked `createSlimReduxStore()` you have to pass the store instance to your change triggers manually. When you pass this in for asyncChangeTrigger it will automatically be set for the change triggers called from within.
+
+**Returns:**  
+A change trigger function which can be called, passing in the parameters that the `triggerFunction` expects. This is not checked of course, you would have to implement your own parameter validation if you need it.
+
+**Example:**  
+```javascript
+// async/todo.js
+import { asyncChangeTrigger } from 'slim-redux-react';
+import { addTodo, addTodoSuccess } from '../changes/todo';
+
+// First argument is a change trigger mapping like in slimReduxReact()
+export const addTodoServerSync = asyncChangeTrigger({ addTodo, addTodoSuccess }, (name) => {
+  // Notice how we have access to the state inside of the reducer function
+  const newId = state.todos.filter((max, value) => Math.max(max, value), 0) + 1;
+
+  // Call our first change trigger (also notice how change triggers now take arguments!)
+  addTodo(newId, title);
+
+  fetch(`/v1/todos`, {
+    method: 'post',
+    /* ... */
+  ).then(data => {
+    // Calling our second change trigger to confirm we added the task on the server
+    addTodoConfirmed(newId);
+  })
+});
+
+// main.js
+import { createSlimReduxStore } from 'slim-redux'
+import { addTodoServerSync } from './async/todo';
+
+const store = createSlimReduxStore({todos:[]});
+
+// Notice how we don't need any sort of registration here.
+// We just call this asynchronous change trigger and pass it the name
+// of our new todo. The rest is taken care of by the async change
+// trigger and will lead to a new todo which is persitetd to the server
+addTodoServerSync('Get Milk');
+```
+
+### store.registerChangeTrigger()
+**(BREAKING CHANGE - not part of the API anymore!)** It's no longer neccessary to register change triggers before using them. We might deliver a middleware in the future which would have a similiar functionality to `registerChangeTrigger()` in that it would allow users to have change triggers handle actions dispatched from outside of slim-redux.
+
+That's probably not very much needed though, as slim-redux allows you to use it alongside existing redux setups, and as long as those can work next to each other and don't have to work *with* each other, the exisiting slim-redux API should serve you great!
 
 <br><br>
 [^ Table of Contents ^](#toc)
 
 ## <a name="recipes"></a>Recipes
-This section features ideas on how to solve certain challenges when working with slim-redux as well as a few suggestions on how to make the most of slim-redux.
 
-### <a name="bundle-change-definitions"></a>Bundle change trigger definitions in one file
-When working with regular redux projects, you will most likely bundle certain parts of your business logic with the help of a combined root reducer.  
-
-Since slim-redux makes the actual reducer transparent to you however, an alternative way of grouping business logic is probably needed.
-
-And while what I'm about to show you be obvious, I still want to explicitly point out this pattern as a way to bundle business logic:
-
-**Example:**  
-```javascript
-// counterChangeTriggers.js
-export const increment = {
-  actionType: 'INCREMENT',
-  reducer: (state, payload, action) => {
-    const value = payload.value || 1;
-    return state + value;
-  }
-}
-
-export const decrement = {
-  actionType: 'DECREMENT',
-  reducer: (state, payload, action) => {
-    const value = payload.value || 1;
-    return state - value;
-  }
-}
-
-//------------------------------------------------
-// index.js
-import { createSlimReduxStore } from 'slim-redux';
-import { increment, decrement } from './counterChangeTriggers';
-
-var store = createSlimReduxStore(0);
-
-// Make sure we see any store changes in the console
-store.subscribe(() =>
-  console.log(store.getState())
-)
-
-var doIncrement = store.createChangeTrigger(increment);
-var doDecrement = store.createChangeTrigger(decrement);
-
-doIncrement({value: 10});
-doIncrement({value: 23});
-
-doDecrement({value: 31});
-doDecrement({value: 11});
-```
-The reason why this works is that `createChangeTrigger()` takes a singular object as an argument. I almost feel stupid for having included this as a recipe, but I wanted to point this out- you probably already did it like that automatically. I'll show myself out now :D  
-
-See this example in its full glory [here](./examples/bundled-change-trigger-definitions).
-
-
-<br><br>
-[^ Table of Contents ^](#toc)
-
-### <a name="namespace-change-triggers"></a>Namespace change trigger definitions
-When building bigger projects, this recipe might be a good idea for you.
-
-Usually when working with react-redux, the separation of your business logic into separate, autonomous modules is achieved through merging your reducers with `combineReducers()`.  
-
-Since slim-redux doesn't explicitly work with reducers like that (you define the code that will act as a reducer, but in the background it's applied by an internal reducer) bigger projects might run into problems with accidentally identical action types when registering change triggers.  
-
-To get around issues like that one idea might be to namespace your actions. If you bundle your related change trigger definitions in one file, namespacing actions easily be achieved with the help of template strings:  
-
-```javascript
-// Let's assume this is the file where you keep all your counter-related change
-// trigger definitions
-const namespace = 'COUNTER_';
-
-export const increment = {
-  actionType: `${namespace}INCREMENT`,
-  reducer: (state, payload, action) => {
-    const value = payload.value || 1;
-    return state + value;
-  }
-}
-
-export const decrement = {
-  actionType: `${namespace}DECREMENT`,
-  reducer: (state, payload, action) => {
-    const value = payload.value || 1;
-    return state - value;
-  }
-}
-```
-With this little trick you can prevent two issues from arising:  
-
-**Prevented issue #1:** Regular redux code accidentally triggering one of these reducers (the reducers you define in your change triggers listen to that action type - regardless of whether a change trigger emitted it or other redux code)  
-
-**Prevented issue #2:** slim-redux change triggers with accidentally identical actionTypes overwriting each other (the internal reducer in slim-redux just registers the reducers under the actionType you give them. Whenever you call `createChangeTrigger()` the reducer + payload validation for that actionType will be overwritten if they already existed)
-
-<br><br>
-[^ Table of Contents ^](#toc)
-
-### <a name="existing-redux-setup"></a>Use slim-redux in an existing redux setup
-*(this was copy'n'pasted from the [slim-redux-react](https://github.com/aGuyNamedJonas/slim-redux-react) README)*  
-Glad you came here to this very recipe: This is the gospel - the good message - of slim-redux & slim-redux-react: You can use it **alongside your existing redux projects!**  
-
-If you already have a root reducer in place, just pass it into `createSlimReduxStore()`:
-```javascript
-const store = createSlimReduxStore(initialState, yourAlreadyExistingRootReducer)
-```
-slim-redux takes care of merging your already existing root reducer together with the internal slim-redux reducer.  
-
-**Got middleware?** Well guess what....  
-```javascript
-const store = createSlimReduxStore(initialState, yourAlreadyExistingRootReducer, yourAlreadyExistingMiddleware)
-```
-
-That's how easy it is :) You can actually see that middleware part in action here: [Including the redux devtools browser extension in the counter example (slim-redux-react)](https://github.com/aGuyNamedJonas/slim-redux-react/blob/master/examples/counter/src/index.js#L8)
-
-Also make sure to check out the `createSlimReduxStore()` [API reference](https://github.com/aGuyNamedJonas/slim-redux#createslimreduxstoreinitialstate-existingrootreducer-enhancer).
-
-<br><br>
-[^ Table of Contents ^](#toc)
-
-### <a name="use-payload-validation"></a>Use payload validation
-Payload validation might be hands-down one of the coolest features of slim-redux. In redux you would probably usually want to validate the parameters of your actions in your action creators. But then when you want to dispatch an [error action](https://github.com/acdlite/flux-standard-action#example) you will need middleware again that provides your action creators with the ability to dispatch error actions.  
-
-In slim-redux payload validation for your actions is a first-class citizen:
-```javascript
-var decrement = store.createChangeTrigger({
-  actionType: 'DECREMENT',
-  reducer: (state, payload, action) => {
-    const value = payload.value || 1;
-    return state - value;
-  },
-
-  // Payload validation - notice how it returns either reject() with a message or
-  // accept() to let slim-redux know whether the validation passed or not.
-  payloadValidation: (payload, accept, reject) => {
-    if(!payload || !payload.value)
-      return reject({
-        msg: 'No parameters given or no "value" attribute in parameters provided!',
-        params: payload
-      });
-    else
-      return accept();
-  }
-});
-```
-
-The way payload validation works is that after you call a change trigger function with some values (e.g. `decrement({value: 10})`) the `payloadValidation()` function is called. If the validation is successful, the action gets passed to the reducers.  
-
-If validation fails however, a [FSA compliant error action](https://github.com/acdlite/flux-standard-action#example) is dispatched:  
-
-```javascript
-decrement({thisIsAnInvalid: 'payload'})
-
-/*
-  This will trigger the following (error) action which will not lead to any state changes in the slim-redux reducer:
-
-  {
-    type: 'DECREMENT',
-    error: true,
-    payload: {
-      "msg": "No parameters given or no \"value\" attribute in parameters provided!",
-      "params": {
-        "thisIsAnInvalid": "payload"
-      }
-    }
-  }
-*/
-```
-Neat huh? :) I love this feature, hoping you also dig it!  
-Make sure to check out the example that I took this code from: [payload-validation example](./examples/payload-validation/).
-
-*Make sure to read on to the next recipe to find out how you can react to payload validation errors.*
-
-<br><br>
-[^ Table of Contents ^](#toc)
-
-
-### <a name="middleware-validation-errors"></a>Build custom middleware to catch payload validation errors
-As discussed in the previous section, payload validation is a built-in, first-class citizen in slim-redux. What's not included right now is a way to register a function handling all payload validation errors.  
-
-Centralized payload validation error handling is on the roadmap for [future development](#future-development), but for now you can already get that by writing a small piece of middleware:
-
-```javascript
-// Middleware that catches payload validation errors
-// Go ahead and give it a nicer name if you like :)
-const payloadValidationErrorCatcher = store => next => action => {
-  if(action.error)
-    console.error(`*** Error while trying to dispatch ${action.type}:\n${JSON.stringify(action.payload, null, 2)}`)
-
-  let result = next(action)
-  return result
-}
-
-// Include the middleware in your slim-redux setup
-var store = createSlimReduxStore(0, null, applyMiddleware(payloadValidationErrorCatcher));
-```
-
-
-Now when calling a change trigger which fails the payload validation and emits an error action, you will see something like the following in your console:
-```
-*** Error while trying to dispatch DECREMENT:
-{
-  "msg": "No parameters given or no \"value\" attribute in parameters provided!",
-  "params": {
-    "thisIsAnInvalid": "payload"
-  }
-}
-```
-Check out the full example that this snippet was taken from: [payload-validation example](./examples/payload-validation/).  
-
-If you want to change your store according to a payload validation error occuring, you could either `dispatch()` and action from within the middleware (not recommended) or better yet: Just use a change trigger!  
-
-Read more [on middleware in the redux docs](http://redux.js.org/docs/api/applyMiddleware.html#applymiddlewaremiddleware) to find out more about the capabilities of middleware.
 
 <br><br>
 [^ Table of Contents ^](#toc)
@@ -482,12 +179,7 @@ Yes, there are react bindings- and they were written with the same intentions as
 [^ Table of Contents ^](#toc)
 
 ## <a name="future-development"></a>Future Development
-Don't know yet what will be needed in the future (since we just started out) but I already have some ideas:
-- [ ] Test coverage
-- [ ] Centralized payload validation (will be passed to `createSlimReduxStore()`)
-- [ ] Centralized error handling for dealing with failed payload validations and other error actions (will also be passed to `createSlimReduxStore()`)
 
-This list will be extended, as [feedback](#feedback) comes in!
 
 ## <a name="contribute"></a>Contribute
 Want to contribute something to this project? AWESOME! Just open up a pull request or an issue and then let's figure out together whether or not it makes sense to add it to the project!
@@ -501,6 +193,13 @@ Got a question, feedback, improvement suggestion, found a bug, wanna share a coo
 [Get in touch on twitter](https://twitter.com/intent/tweet?screen_name=aGuyNamedJonas&text=%23slim-redux%20)  
 
 [(Optional) follow me on twitter (@aGuyNamedJonas)](https://twitter.com/aGuyNamedJonas)
+
+## <a name="change-log"></a>Change Log
+### 0.2 release (May 2017)
+* stuff we changed
+* stuff we changed
+* stuff we changed
+* stuff we changed
 
 ## <a name="license"></a>License
 MIT
