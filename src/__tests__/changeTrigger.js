@@ -9,7 +9,7 @@ const INITIAL_STATE     = 0,
 describe('changeTrigger() (default behavior)', () => {
   test('returns a function', () => {
     const ctFuncSuccess = changeTrigger(INCREMENT, state => state);
-    expect(getType(ctFuncSuccess)).toBe('Function');
+    expect(isFunction(ctFuncSuccess)).toBe(true);
   });
 
   test('first argument is action type', () => {
@@ -45,7 +45,13 @@ describe('changeTrigger() (default behavior)', () => {
 });
 
 describe('changeTrigger() (error / special cases)', () => {
-  test('throws an exception when actionType (first argument) is "" (whitespace trimmed), null, or undefined', () => {
+  test('throws an exception when it receives more than two arguments', () => {
+    expect(() => {
+      const ctFuncFail = changeTrigger('ADD_TODO', state => state, 'This argument should not be here');
+    }).toThrow();
+  });
+
+  test('throws an exception when actionType (first argument) is "" (whitespace trimmed), null, undefined, or not a string', () => {
     expect(() => {
       const ctFuncFail = changeTrigger('  ', state => state);
     }).toThrow();
@@ -56,6 +62,11 @@ describe('changeTrigger() (error / special cases)', () => {
 
     expect(() => {
       const ctFuncFail = changeTrigger(undefined, state => state);
+    }).toThrow();
+
+    expect(() => {
+      const NOT_A_STRING = 123;
+      const ctFuncFail = changeTrigger(NOT_A_STRING, state => state);
     }).toThrow();
   });
 
@@ -83,6 +94,18 @@ describe('changeTrigger() (error / special cases)', () => {
 });
 
 describe('change trigger functions (usage of change triggers)', () => {
+  test('throws exception when no global slim-redux store instance can be found and none is provided in the last argument', () => {
+    epxect(() => {
+      let store = createSlimReduxStore(INITIAL_STATE, {
+        disableGlobalStore: true
+      });
+      const increment = changeTrigger(INCREMENT, state => state);
+
+      // This is expected to throw an exception since we turned off the global store instance and don't provide a local instance
+      increment();
+    }).toThrow();
+  });
+
   test('dispatches action that has the setup action type and reducer func. arguments as payload', () => {
     let actionObject = null;
 
@@ -114,7 +137,7 @@ describe('change trigger functions (usage of change triggers)', () => {
     });
   });
 
-  test('dispatches action after applying reducer function to state', () => {
+  test('dispatches action AFTER applying reducer function to state', () => {
     const interceptionMiddleware = store => next => action => {
       // We're testing this by intercepting the dispatched action at which point the state should already have been modified
       expect(action.type).toEqual(INCREMENT);
