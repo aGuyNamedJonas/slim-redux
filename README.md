@@ -1,6 +1,8 @@
 slim-redux
 ==========
 
+[![CircleCI Status](https://circleci.com/gh/aGuyNamedJonas/slim-redux.svg?style=shield&circle-token=:circle-token)](https://circleci.com/gh/aGuyNamedJonas/slim-redux)
+
 [*Jump to Table of Contents*](#toc)  
 
 ____
