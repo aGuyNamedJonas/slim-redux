@@ -34,6 +34,10 @@ export function changeTrigger(actionType, reducer){
         ctError                 = msg => error(`${ctActionType} change trigger function`, msg);
 
   function changeTriggerFunction(...parameters){
+    /*
+      Check parameters
+    */
+
     // Check for the 'slimReduxOptions' key in the last argument to assess whether it's a slim-redux store
     const storeParam = ('slimReduxOptions' in parameters[parameters.length - 1] ? parameters[parameters.length - 1] : null);
 
@@ -42,7 +46,15 @@ export function changeTrigger(actionType, reducer){
     if(store === null)
       ctError(`Cannot find slim-redux store instance in arguments (last parameter) of change trigger or in window.store (global scope, set by createSlimReduxStore()). If set the (disableGlobalStore: true) option in createSlimReduxStore(), make sure to pass in the desired slim-redux store instance as the last argument in every change trigger call`);
 
-    // WIP
+    // If last argument is not a slim-redux store instance, max. amount of arguments can be one less than the reducer func. had
+    if(storeParam === null && parameters.length > ctReducerArgumentsCount - 1)
+      ctError(`Last argument doesn't seem to be slim-redux store instance, thus max. allowed arguments: ${ctReducerArgumentsCount - 1}, got ${parameters.length} instead: \n ${JSON.stringify(parameters, null, 2)}`);
+
+    if(storeParam !== null && parameters.length > ctReducerArgumentsCount)
+      ctError(`Last argument seems to be slim-redux store instance, thus max. allowed arguments: ${ctReducerArgumentsCount}, got ${parameters.length} instead: \n ${JSON.stringify(parameters, null, 2)}`);
+
+    
+
   }
 
   return changeTriggerFunction;

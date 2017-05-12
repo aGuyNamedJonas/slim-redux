@@ -93,17 +93,25 @@ describe('changeTrigger() (error / special cases)', () => {
   });
 });
 
-describe('change trigger functions (usage of change triggers)', () => {
-  test('throws exception when no global slim-redux store instance can be found and none is provided in the last argument', () => {
-    epxect(() => {
-      let store = createSlimReduxStore(INITIAL_STATE, {
-        disableGlobalStore: true
-      });
-      const increment = changeTrigger(INCREMENT, state => state);
+describe('change trigger functions (default cases)', () => {
+  test('dispatches action AFTER applying reducer function to state', () => {
+    const interceptionMiddleware = store => next => action => {
+      // We're testing this by intercepting the dispatched action at which point the state should already have been modified
+      expect(action.type).toEqual(INCREMENT);
+      console.log('Todo: Check whether or not this test actually works!')
+      expect(store.getState()).toEqual(INCREMENTED_STATE);
 
-      // This is expected to throw an exception since we turned off the global store instance and don't provide a local instance
-      increment();
-    }).toThrow();
+      let result = next(action)
+      return result
+    }
+
+    let store = createSlimReduxStore(INITIAL_STATE, {
+      middleware: applyMiddleware(interceptionMiddleware),
+    });
+
+    // Create the change trigger
+    const increment = changeTrigger(INCREMENT, state => state);
+    increcement();
   });
 
   test('dispatches action that has the setup action type and reducer func. arguments as payload', () => {
@@ -137,31 +145,45 @@ describe('change trigger functions (usage of change triggers)', () => {
     });
   });
 
-  test('dispatches action AFTER applying reducer function to state', () => {
-    const interceptionMiddleware = store => next => action => {
-      // We're testing this by intercepting the dispatched action at which point the state should already have been modified
-      expect(action.type).toEqual(INCREMENT);
-      console.log('Todo: Check whether or not this test actually works!')
-      expect(store.getState()).toEqual(INCREMENTED_STATE);
-
-      let result = next(action)
-      return result
-    }
-
-    let store = createSlimReduxStore(INITIAL_STATE, {
-      middleware: applyMiddleware(interceptionMiddleware),
+  test('change trigger function receives global state instance as last argument (by default)', () => {
+    let store = createSlimReduxStore(INITIAL_STATE);
+    var receivedStateInstance = null;
+    const increment = changeTrigger(INCREMENT, state => {
+      receivedStateInstance = state;
+      return state;
     });
 
-    // Create the change trigger
-    const increment = changeTrigger(INCREMENT, state => state);
-    increcement();
+    increment();
+    expect(receivedStateInstance).toEqual(store.getState());
   });
 
-  test('second argument is reducer function', () => {
-    const store = createSlimReduxStore(INITIAL_STATE);
+  test('change trigger function will receive local state instance when store is provided as last argument (disableGlobalStore = false [default])', () => {
+    const todoInitialState = { todos: [] };
+    let globalStoreOn      = createSlimReduxStore(INITIAL_STATE);
+    let secondStore        = createSlimReduxStore(INITIAL_STATE, { disableGlobalStore: true });
+
     const increment = changeTrigger(INCREMENT, state => state + 1);
-    // We'll know the second argument passed in is the reducer, if it worked to alter the state as expected
-    expect(store.getState()).toEqual(INCREMENTED_STATE);
+
+    // increment() the second store
+    increment(secondStore);
+
+    // expect the globalStore to still be on the INITIAL_STATE
+    expect(globalStoreOn.getState()).toEqual(INITIAL_STATE);
+    expect(secondStore.getState()).toEqual(INCREMENTED_STATE);
+  });
+});
+
+describe('change trigger functions (special cases / error cases)', () => {
+  test('throws exception when no global slim-redux store instance can be found and none is provided in the last argument', () => {
+    epxect(() => {
+      let store = createSlimReduxStore(INITIAL_STATE, {
+        disableGlobalStore: true
+      });
+      const increment = changeTrigger(INCREMENT, state => state);
+
+      // This is expected to throw an exception since we turned off the global store instance and don't provide a local instance
+      increment();
+    }).toThrow();
   });
 
   test('does not dispatch action when disableActionDispatch=true was set when creating store', () => {
@@ -211,45 +233,18 @@ describe('change trigger functions (usage of change triggers)', () => {
     }).toThrow();
   });
 
-  test('change trigger function receives global state instance as last argument (by default)', () => {
-    let store = createSlimReduxStore(INITIAL_STATE);
-    var receivedStateInstance = null;
-    const increment = changeTrigger(INCREMENT, state => {
-      receivedStateInstance = state;
-      return state;
-    });
-
-    increment();
-    expect(receivedStateInstance).toEqual(store.getState());
-  });
-
-  test('change trigger function receives custom state instance as last argument (disableGlobalStore=true)', () => {
+  test('change trigger function will receive local state instance when store is provided as last argument (disableGlobalStore = true)', () => {
     const todoInitialState = { todos: [] };
-    let store       = createSlimReduxStore(INITIAL_STATE, { disableGlobalStore: true });
-    let secondStore = createSlimReduxStore(todoInitialState, { disableGlobalStore: true });
+    let globalStoreOn      = createSlimReduxStore(INITIAL_STATE, { disableGlobalStore: true });
+    let secondStore        = createSlimReduxStore(INITIAL_STATE, { disableGlobalStore: true });
 
-    var receivedStateInstance = null;
-    const increment = changeTrigger(INCREMENT, state => {
-      receivedStateInstance = state;
-      return state;
-    });
+    const increment = changeTrigger(INCREMENT, state => state + 1);
 
+    // increment() the second store
     increment(secondStore);
-    expect(receivedStateInstance).toEqual(secondStore.getState());
-  });
 
-  test('change trigger function receives custom state instance as last argument (disableGlobalStore=false)', () => {
-    const todoInitialState = { todos: [] };
-    let store       = createSlimReduxStore(INITIAL_STATE);
-    let secondStore = createSlimReduxStore(todoInitialState, { disableGlobalStore: true });
-
-    var receivedStateInstance = null;
-    const increment = changeTrigger(INCREMENT, state => {
-      receivedStateInstance = state;
-      return state;
-    });
-
-    increment(secondStore);
-    expect(receivedStateInstance).toEqual(secondStore.getState());
+    // expect the globalStore to still be on the INITIAL_STATE
+    expect(globalStoreOn.getState()).toEqual(INITIAL_STATE);
+    expect(secondStore.getState()).toEqual(INCREMENTED_STATE);
   });
 });
