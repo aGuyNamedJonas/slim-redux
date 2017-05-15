@@ -140,14 +140,6 @@ describe('createSlimReduxStore() (options object)', () => {
     }).toThrow();
   });
 
-  test('throws an error when "disableActionDispatch" is not a boolean value', () => {
-    expect(() => {
-      let storeFails = createSlimReduxStore(INITIAL_STATE, {
-        disableActionDispatch: 'This is clearly not a boolean :)'
-      });
-    }).toThrow();
-  });
-
   test('throws an error when "disableGlobalStore" is not a boolean value', () => {
     expect(() => {
       let storeFails = createSlimReduxStore(INITIAL_STATE, {

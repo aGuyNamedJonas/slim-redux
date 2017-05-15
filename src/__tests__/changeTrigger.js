@@ -94,26 +94,6 @@ describe('changeTrigger() (error / special cases)', () => {
 });
 
 describe('change trigger functions (default cases)', () => {
-  test('dispatches action AFTER applying reducer function to state', () => {
-    const interceptionMiddleware = store => next => action => {
-      // We're testing this by intercepting the dispatched action at which point the state should already have been modified
-      expect(action.type).toEqual(INCREMENT);
-      console.log('Todo: Check whether or not this test actually works!')
-      expect(store.getState()).toEqual(INCREMENTED_STATE);
-
-      let result = next(action)
-      return result
-    }
-
-    let store = createSlimReduxStore(INITIAL_STATE, {
-      middleware: applyMiddleware(interceptionMiddleware),
-    });
-
-    // Create the change trigger
-    const increment = changeTrigger(INCREMENT, state => state);
-    increcement();
-  });
-
   test('dispatches action that has the setup action type and reducer func. arguments as payload', () => {
     let actionObject = null;
 
@@ -184,31 +164,6 @@ describe('change trigger functions (special cases / error cases)', () => {
       // This is expected to throw an exception since we turned off the global store instance and don't provide a local instance
       increment();
     }).toThrow();
-  });
-
-  test('does not dispatch action when disableActionDispatch=true was set when creating store', () => {
-    let actionType = null;
-    let actionObject = null;
-
-    // Dummy middleware, intercepting the action type and the action itself
-    const interceptionMiddleware = store => next => action => {
-      actionType = action.type;
-      actionObject = action;
-      let result = next(action)
-      return result
-    }
-
-    let store = createSlimReduxStore(INITIAL_STATE, {
-      middleware: applyMiddleware(interceptionMiddleware),
-      disableActionDispatch: true,
-    });
-
-    // Create the change trigger
-    const increment = changeTrigger(INCREMENT, state => state);
-    increment();
-
-    // Make sure that what was our first argument is the type of the dispatched action
-    expect(actionType).toEqual(null);
   });
 
   test('throws exception when too many arguments are provided', () => {
