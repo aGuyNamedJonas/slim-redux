@@ -8,7 +8,7 @@ const INITIAL_STATE     = 0,
 
 describe('changeTrigger() (default behavior)', () => {
   test('returns a function', () => {
-    const ctFuncSuccess = changeTrigger(INCREMENT, state => state);
+    const ctFuncSuccess = changeTrigger(INCREMENT, state => state + 1);
     expect(isFunction(ctFuncSuccess)).toBe(true);
   });
 
@@ -29,7 +29,7 @@ describe('changeTrigger() (default behavior)', () => {
     });
 
     // Create the change trigger
-    const increment = changeTrigger(INCREMENT, state => state);
+    const increment = changeTrigger(INCREMENT, state => state + 1);
     increment();
 
     // Make sure that what was our first argument is the type of the dispatched action
@@ -38,7 +38,12 @@ describe('changeTrigger() (default behavior)', () => {
 
   test('second argument is reducer function', () => {
     const store = createSlimReduxStore(INITIAL_STATE);
-    const increment = changeTrigger(INCREMENT, state => state + 1);
+    const increment = changeTrigger(INCREMENT, state => {
+      console.log(`Calling increment CT reducer function`)
+      return state + 1;
+    });
+    increment();
+
     // We'll know the second argument passed in is the reducer, if it worked to alter the state as expected
     expect(store.getState()).toEqual(INCREMENTED_STATE);
   });
@@ -155,11 +160,11 @@ describe('change trigger functions (default cases)', () => {
 
 describe('change trigger functions (special cases / error cases)', () => {
   test('throws exception when no global slim-redux store instance can be found and none is provided in the last argument', () => {
-    epxect(() => {
+    expect(() => {
       let store = createSlimReduxStore(INITIAL_STATE, {
         disableGlobalStore: true
       });
-      const increment = changeTrigger(INCREMENT, state => state);
+      const increment = changeTrigger(INCREMENT, state => state + 1);
 
       // This is expected to throw an exception since we turned off the global store instance and don't provide a local instance
       increment();
@@ -168,7 +173,7 @@ describe('change trigger functions (special cases / error cases)', () => {
 
   test('throws exception when too many arguments are provided', () => {
     let store = createSlimReduxStore(INITIAL_STATE);
-    const increment = changeTrigger(INCREMENT, state => state);
+    const increment = changeTrigger(INCREMENT, state => state + 1);
 
     expect(() => {
       /*
@@ -182,7 +187,7 @@ describe('change trigger functions (special cases / error cases)', () => {
 
   test('throws exception when last argument is not a slim-redux store instance but should be (by the no. of args.)', () => {
     let store = createSlimReduxStore(INITIAL_STATE);
-    const increment = changeTrigger(INCREMENT, state => state);
+    const increment = changeTrigger(INCREMENT, state => state + 1);
     expect(() => {
       increment('definitely not an instance of a slim-redux store');
     }).toThrow();

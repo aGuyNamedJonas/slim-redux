@@ -92,18 +92,22 @@ export function createSlimReduxStore(initialState, options) {
     Setup internal slim-redux reducer
   */
   function slimReduxReducer(state, action){
+    // console.log(`Calling slim-redux reducer, with state: ${state} and action: ${JSON.stringify(action, null, 2)}`)
+    // console.log(`Checking out the this context of the internal reducer: ${JSON.stringify(this.slimReduxChangeTriggers, null, 2)} ${JSON.stringify(this.slimReduxOptions, null, 2)}`);
+    //
     const actionType = action.type,
           payload    = action.payload,
-          reducer    = (store.slimReduxChangeTriggers[actionType] ? store.slimReduxChangeTriggers[actionType].reducer : null);
+          reducer    = (this.slimReduxChangeTriggers[actionType] ? this.slimReduxChangeTriggers[actionType] : null);
 
-    if(reducer && !isError)
-      return reducer(state, payload, action);
+    if(reducer)
+      return reducer(...payload, state);
     else
       return state;
+    
   }
 
   // Inject internal reducer
-  const enhancedRootReducer = reduceReducers(rootReducer, slimReduxReducer);
+  const enhancedRootReducer = reduceReducers(rootReducer, slimReduxReducer.bind(store));
   store.replaceReducer(enhancedRootReducer);
 
   // Register store instance in global namespace if not turned off
