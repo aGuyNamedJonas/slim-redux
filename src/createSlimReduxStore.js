@@ -1,5 +1,6 @@
 import { createStore } from 'redux';
 import { error, getType, isObject, isFunction, isBoolean } from './util';
+import reduceReducers from 'reduce-reducers';
 
 export function createSlimReduxStore(initialState, options) {
   const error = msg => error('createSlimReduxStore()', msg);
@@ -17,7 +18,8 @@ export function createSlimReduxStore(initialState, options) {
       slimReduxOptions = {
         disableActionDispatch : false,
         disableGlobalStore    : false,
-      };
+      },
+      slimReduxChangeTriggers = {};
 
   /*
     Check input parameters, this puppy should be fool proof :)
@@ -77,13 +79,32 @@ export function createSlimReduxStore(initialState, options) {
   }
 
   /*
-    Create the redux store, inject slim-redux functionality into it
+    Create the redux store, inject the slim-redux reducer and the slim-redux functionality into it
   */
   var store = createStore(rootReducer, initialState, middleware);
 
   // Inject all the good stuff into the store
-  store.registerChangeTrigger = registerChangeTrigger;
-  store.slimReduxOptions      = slimReduxOptions;
+  store.registerChangeTrigger   = registerChangeTrigger;
+  store.slimReduxOptions        = slimReduxOptions;
+  store.slimReduxChangeTriggers = slimReduxChangeTriggers;
+
+  /*
+    Setup internal slim-redux reducer
+  */
+  function slimReduxReducer(state, action){
+    const actionType = action.type,
+          payload    = action.payload,
+          reducer    = (store.slimReduxChangeTriggers[actionType] ? store.slimReduxChangeTriggers[actionType].reducer : null);
+
+    if(reducer && !isError)
+      return reducer(state, payload, action);
+    else
+      return state;
+  }
+
+  // Inject internal reducer
+  const enhancedRootReducer = reduceReducers(rootReducer, slimReduxReducer);
+  store.replaceReducer(enhancedRootReducer);
 
   // Register store instance in global namespace if not turned off
   if(!slimReduxOptions.disableGlobalStore)
