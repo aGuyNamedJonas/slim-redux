@@ -156,6 +156,11 @@ describe('change trigger functions (default cases)', () => {
     expect(globalStoreOn.getState()).toEqual(INITIAL_STATE);
     expect(secondStore.getState()).toEqual(INCREMENTED_STATE);
   });
+      
+  test('change trigger function will return action that it dispatched on invocation', () => { 
+    // Todo: Implement! :)
+    expect(false).toBe(true); 
+  });
 });
 
 describe('change trigger functions (special cases / error cases)', () => {
