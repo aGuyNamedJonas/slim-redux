@@ -43,6 +43,7 @@
     "babel-plugin-transform-runtime": "^6.15.0",
     "babel-preset-latest": "^6.16.0",
     "babel-preset-stage-0": "^6.16.0",
+    "babel-preset-stage-2": "^6.24.1",
     "babel-register": "^6.16.3",
     "chai": "^4.0.0-canary.1",
     "coveralls": "^2.11.14",
