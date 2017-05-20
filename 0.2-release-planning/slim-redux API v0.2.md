@@ -115,13 +115,14 @@ const store = createSlimReduxStore({todos:[]});
 addTodoServerSync('Get Milk');
 ```
 
-### calculation(calcFunction, subscriptionMap, [changeCallback])
+### calculation(calcFunction, subscriptionMap, [changeCallback], [{store: storeInstance}])
 **Description:** Calculations take a bunch of subscriptions to a part of the state and return a calculated value that is being re-calculated anytime any of the subscribed to parts of the state change. Optionally a callback can be provided which is called with the values that this calculation computes as arguments.
 
 **Parameters:**  
 * `calcFunction`: Function which takes the subscriptions as an argument and then returns a calculated value off of these subscriptions. Anytime any of these subscriptions change, the `calcFunction` is re-invoked.
 * `subscriptionMap`: An object mapping a part of the state to values that will be passed in to the `calcFunction` as arguments.
 * `(optional) changeCallback`: Optional callback which is called whenever the calculation was retriggered. Function receives whatever the calculation returns as arguments.
+* `(optional) storeInstance`: With this parameter you can specify which store instance to register this calculation with. Default is the global instance.
 
 **Returns:**  
 Null in any case, throws error whenever one of the subscriptions could not be found inside the state.
