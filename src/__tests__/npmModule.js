@@ -1,4 +1,4 @@
-import { createSlimReduxStore, changeTrigger, asyncChangeTrigger } from '../';  // It's important we import the functions are they are being exported by the module
+import { createSlimReduxStore, changeTrigger, hoChangeTrigger } from '../';  // It's important we import the functions are they are being exported by the module
 
 describe('NPM module', () => {
   test('exports createSlimReduxStore()', () => {
@@ -11,8 +11,8 @@ describe('NPM module', () => {
     expect(changeTrigger).not.toBeUndefined();
   });
 
-  test('exports asyncChangeTrigger()', () => {
-    expect(asyncChangeTrigger).toBeTruthy();
-    expect(asyncChangeTrigger).not.toBeUndefined();
+  test('exports hoChangeTrigger()', () => {
+    expect(hoChangeTrigger).toBeTruthy();
+    expect(hoChangeTrigger).not.toBeUndefined();
   });
 });

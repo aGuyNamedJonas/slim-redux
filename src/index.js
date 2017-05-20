@@ -1,9 +1,9 @@
 import { createSlimReduxStore } from './createSlimReduxStore';
 import { changeTrigger } from './changeTrigger';
-import { asyncChangeTrigger } from './asyncChangeTrigger';
+import { hoChangeTrigger } from './hoChangeTrigger';
 
 export {
   createSlimReduxStore,
   changeTrigger,
-  asyncChangeTrigger,
+  hoChangeTrigger,
 }
