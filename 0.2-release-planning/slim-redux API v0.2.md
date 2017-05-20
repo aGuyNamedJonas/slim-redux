@@ -116,7 +116,8 @@ addTodoServerSync('Get Milk');
 ```
 
 ### calculation(calcFunction, subscriptionMap, [changeCallback], [{store: storeInstance}])
-**Description:** Calculations take a bunch of subscriptions to a part of the state and return a calculated value that is being re-calculated anytime any of the subscribed to parts of the state change. Optionally a callback can be provided which is called with the values that this calculation computes as arguments.
+**Description:** Calculations are a great way to compute derived values off of the state. calculation() returns the computed value and internally uses redux-reselect, so the value you get might be cached which makes this efficient.  
+Also you can pass in a callback into calculation() which gets invoked AFTER any of the subscribed-to values has changed and the new result has been computed. Like that this is a powerful way to react to state changes in a very specific and granular way.
 
 **Parameters:**  
 * `calcFunction`: Function which takes the subscriptions as an argument and then returns a calculated value off of these subscriptions. Anytime any of these subscriptions change, the `calcFunction` is re-invoked.
@@ -125,7 +126,7 @@ addTodoServerSync('Get Milk');
 * `(optional) storeInstance`: With this parameter you can specify which store instance to register this calculation with. Default is the global instance.
 
 **Returns:**  
-Null in any case, throws error whenever one of the subscriptions could not be found inside the state.
+The calculated value. As this is based on redux-reselect, calling a calculation might very well return a cached result - it does not recalculate if it doesn't have to. Like that this is also a very efficient way to access computed values that are derived from the state. Throws error whenever one of the subscriptions could not be found inside the state.
 
 **Example:**  
 ```javascript
