@@ -32,7 +32,8 @@ const store = createSlimReduxStore({todos:[]}, {
 **Example:** `addTodo('Get Milk', {store: storeInstance})`
 
 **Returns:**  
-Change trigger function that has the signature of the reducer function and when called will first invoke the reducer function on the store state and then dispatch the appropriate action.
+Change trigger function that has the signature of the reducer function and when called will first invoke the reducer function on the store state and then dispatch the appropriate action.  
+The change trigger when called will return the action that was dispatched by the change trigger.
 
 **Example:**  
 ```javascript
@@ -65,8 +66,8 @@ addTodo('Get Milk');
 
 **Note on implementation:** The optional store which can be passed in, is probably best implemented by setting `this.store` for the reducer function before invoking it. So the change trigger functions should be implemented in a way that they first check `this.store`, then `window.store` (on node.js we should just do `GLOBAL.window = GLOBAL` to be able to use the window object universally).
 
-### asyncChangeTrigger(changeTriggers, triggerFunction, [{store: storeInstance}])
-**Description:** Async change triggers allow you to execute network requests, or other asynchronous functions and then call change triggers whenever needed. This is to preserve the nature of change triggers which are supposed to be side-effect free actual state changes, but at the same time provides with a convenient way of dealing with async state changes.  
+### hoChangeTrigger(changeTriggers, triggerFunction, [{store: storeInstance}])
+**Description:** Higher order change triggers allow you to execute network requests, or other asynchronous functions and then call change triggers whenever needed. This is to preserve the nature of change triggers which are supposed to be side-effect free actual state changes, but at the same time provides with a convenient way of dealing with async state changes.  
 Note that this does not have an action type, as only change triggers have an action type. This is to make sure that whenever you see an action in your redux devtools, they actually represent a state change, not any pseudo actions that are only there to trigger async code.
 
 **Parameters:**  
@@ -76,7 +77,7 @@ Note that this does not have an action type, as only change triggers have an act
 * `(optional) Object with store instance in it` In case you set the `disableGlobalStore=true` option when you invoked `createSlimReduxStore()` you have to pass the store instance to your change triggers manually. When you pass this in for asyncChangeTrigger it will automatically be set for the change triggers called from within.
 
 **Returns:**  
-A change trigger function which can be called, passing in the parameters that the `triggerFunction` expects. This is not checked of course, you would have to implement your own parameter validation if you need it.
+A change trigger function which can be called, passing in the parameters that the `triggerFunction` expects. When calling the trigger function, it will return a promise (since hoChangeTrigger are rather asynchronous in nature) which contains all the actions dispatched and access to the state.
 
 **Example:**  
 ```javascript
@@ -112,6 +113,33 @@ const store = createSlimReduxStore({todos:[]});
 // of our new todo. The rest is taken care of by the async change
 // trigger and will lead to a new todo which is persitetd to the server
 addTodoServerSync('Get Milk');
+```
+
+### calculation(calcFunction, subscriptionMap, [changeCallback])
+**Description:** Calculations take a bunch of subscriptions to a part of the state and return a calculated value that is being re-calculated anytime any of the subscribed to parts of the state change. Optionally a callback can be provided which is called with the values that this calculation computes as arguments.
+
+**Parameters:**  
+* `calcFunction`: Function which takes the subscriptions as an argument and then returns a calculated value off of these subscriptions. Anytime any of these subscriptions change, the `calcFunction` is re-invoked.
+* `subscriptionMap`: An object mapping a part of the state to values that will be passed in to the `calcFunction` as arguments.
+* `(optional) changeCallback`: Optional callback which is called whenever the calculation was retriggered. Function receives whatever the calculation returns as arguments.
+
+**Returns:**  
+Null in any case, throws error whenever one of the subscriptions could not be found inside the state.
+
+**Example:**  
+```javascript
+import { calculation } from 'slim-redux';
+
+const todos = 'state.todos';
+const filter = 'state.todos.visbilityFilter';
+
+export const visibleTodos = calculation((todos, filter) => (
+  todos.filter(todo => (
+    filter === 'all' ||
+    filter === 'open' && !todo.checked ||
+    filter === 'done' && todo.checked
+  ));
+), { todos, filter });
 ```
 
 ### store.registerChangeTrigger()
