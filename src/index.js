@@ -1,11 +1,11 @@
 import { createSlimReduxStore } from './createSlimReduxStore';
 import { changeTrigger } from './changeTrigger';
-import { hoChangeTrigger } from './hoChangeTrigger';
+import { asyncChangeTrigger } from './asyncChangeTrigger';
 import { calculation } from './calculation';
 
 export {
   createSlimReduxStore,
   changeTrigger,
-  hoChangeTrigger,
+  asyncChangeTrigger,
   calculation,
 }

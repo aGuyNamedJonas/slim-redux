@@ -66,8 +66,8 @@ addTodo('Get Milk');
 
 **Note on implementation:** The optional store which can be passed in, is probably best implemented by setting `this.store` for the reducer function before invoking it. So the change trigger functions should be implemented in a way that they first check `this.store`, then `window.store` (on node.js we should just do `GLOBAL.window = GLOBAL` to be able to use the window object universally).
 
-### hoChangeTrigger(changeTriggers, triggerFunction, [{store: storeInstance}])
-**Description:** Higher order change triggers allow you to execute network requests, or other asynchronous functions and then call change triggers whenever needed. This is to preserve the nature of change triggers which are supposed to be side-effect free actual state changes, but at the same time provides with a convenient way of dealing with async state changes.  
+### asyncChangeTrigger(changeTriggers, triggerFunction, [{store: storeInstance}])
+**Description:** Change triggers are always synchronous, as is the norm in redux (store.dispatch() and the reducers are actually synchronous). To allow for asynchronous code to take care of state changes, in slim-redux asyncChangeTrigger() is provided. The name might be slightly confusing at first, but the idea is that your async code gets provided with change triggers (synchronous) which you can call out of your async callbacks / promises etc. Async change triggers are of course not guaranteed to actually make a state change, but when they do, it's through a regular, synchronous change trigger.  
 Note that this does not have an action type, as only change triggers have an action type. This is to make sure that whenever you see an action in your redux devtools, they actually represent a state change, not any pseudo actions that are only there to trigger async code.
 
 **Parameters:**  
