@@ -115,6 +115,18 @@ const store = createSlimReduxStore({todos:[]});
 addTodoServerSync('Get Milk');
 ```
 
+### subscription(subscriptionString, changeCallback, [{store: storeInstance}])  
+**Description:** Function which lets you react to state changing in very specific areas (so whatever you subscribed to). The changeCallback is called anytime the subscribed to part of the state changes, and will receive the subscribed to value and the state as arguments.  
+This API function is only neccessary when exclusively working with slim-redux. In slim-redux-react, this function is used internally to provide subscriptions.
+
+**Prameters:**  
+* `subscriptionString`: String which addresses (a part of) the state tree. For example: `state.todos.filter`.
+* `changeCallback`: This is called anytime the subscribed-to part of the state changes. The callback will receive the subscribed to part of the state and the state itself as arguments.
+* `(optional) storeInstance`: With this parameter you can specify which store instance to register this calculation with. Default is the global instance.
+
+**Returns:**  
+True, if subscription was successfully created, throws exception when the subscription string did not match anything in the state or a store instance could not be found.
+
 ### calculation(calcFunction, subscriptionMap, [changeCallback], [{store: storeInstance}])
 **Description:** Calculations are a great way to compute derived values off of the state. calculation() returns the computed value and internally uses redux-reselect, so the value you get might be cached which makes this efficient.  
 Also you can pass in a callback into calculation() which gets invoked AFTER any of the subscribed-to values has changed and the new result has been computed. Like that this is a powerful way to react to state changes in a very specific and granular way.
@@ -122,7 +134,7 @@ Also you can pass in a callback into calculation() which gets invoked AFTER any 
 **Parameters:**  
 * `calcFunction`: Function which takes the subscriptions as an argument and then returns a calculated value off of these subscriptions. Anytime any of these subscriptions change, the `calcFunction` is re-invoked.
 * `subscriptionMap`: An object mapping a part of the state to values that will be passed in to the `calcFunction` as arguments.
-* `(optional) changeCallback`: Optional callback which is called whenever the calculation was retriggered. Function receives whatever the calculation returns as arguments.
+* `(optional) changeCallback`: Optional callback which is called whenever the calculation was retriggered. Function receives whatever the calculation returns as arguments and the state as the last argument
 * `(optional) storeInstance`: With this parameter you can specify which store instance to register this calculation with. Default is the global instance.
 
 **Returns:**  
