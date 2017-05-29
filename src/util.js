@@ -26,3 +26,35 @@ export const getFuncParamNames = (func) => {
      result = [];
   return result;
 }
+
+/*
+  Function which takes a subscription string ('state.todos.active') and returns the corresponding part of the state
+  (or throws an error when not found)
+
+*/
+const subscriptionStringToState = (subscriptionString, state) => {
+  const subStringParts = subscriptionString.split('.');
+  var currentPath = 'state';
+  var subscribedToState = state;
+
+  for(var i=1; i < subStringParts.length; i++){
+    const nextPath = subStringParts[i];
+    currentPath += `.${nextPath}`;
+
+    if(!(nextPath in subscribedToState))
+      return { error: true, errorPath: currentPath }
+
+    subscribedToState = subscribedToState[nextPath];
+  }
+
+  return { success: true, subscribedToState };
+}
+
+export const mapSubscriptionsToState = (subscriptionMap, state) => {
+  const subscriptions = Object.keys(subscriptionMap);
+  const stateMap = {};
+
+  for(var i=0; i<subscriptions; i++){
+    const subscribedTodState
+  }
+}

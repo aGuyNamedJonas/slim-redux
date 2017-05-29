@@ -77,11 +77,25 @@ describe('Calculation() (error / special cases)', () => {
     expect(() => calculation('NOT_A_FUNCTION', { one: 'state.one' })).toThrow();
   });
 
-  test('will throw error when subscriptionMap (second argument) is not an object, or empty', () => {
+  test('will throw error when subscriptionMap (second argument) is an empty object', () => {
+    const store = createSlimReduxStore({one: 'one', two: 'two'});
+    expect(() => calculation(one => one, {})).toThrow();
+  });
+
+  test('will throw error when subscriptionMap (second argument) is undefined or null', () => {
+    const store = createSlimReduxStore({one: 'one', two: 'two'});
+    expect(() => calculation(one => one, null)).toThrow();
+    expect(() => calculation(one => one)).toThrow();
+  });
+
+  test('will throw error when subscriptionMap (second argument) is not an object', () => {
     const store = createSlimReduxStore({one: 'one', two: 'two'});
     expect(() => calculation(one => one, ['not', 'an', 'object'])).toThrow();
-    expect(() => calculation(one => one, {})).toThrow();
-    expect(() => calculation(one => one)).toThrow();
+  });
+
+  test('will throw error when more than 4 arguments are passed in', () => {
+    const store = createSlimReduxStore({one: 'one', two: 'two'});
+    expect(() => calculation(one => one, {one: 'one'}, result => result, {store}, 'fifth argument which is not allowed')).toThrow();
   });
 
   test('will throw error when any of the subscriptionMap values are not a string', () => {
