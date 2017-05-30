@@ -1,8 +1,8 @@
 import { changeTrigger, createSlimReduxStore, subscription } from '../';
 import sinon from 'sinon';
 
-const store = createSlimReduxStore({ one: 'one', two: 'two', three: { four: 'four' } });
-const resetStore = changeTrigger('RESET_STORE', state => ({ one: 'one', two: 'two', three: { four: 'four' } }));
+const store      = createSlimReduxStore({ one: 'one', two: 'two', three: { four: 'four' } }),
+      resetStore = changeTrigger('RESET_STORE', state => ({ one: 'one', two: 'two', three: { four: 'four' } }));
 
 beforeEach(() => resetStore());
 
@@ -14,34 +14,34 @@ describe('Subscriptions', () => {
     });
 
     test('will call changeCallback when subscribed to part of state is changed', () => {
-      const cbFunc = sinon.spy(one => one);
-      const subscriptionCreated = subscription('state.one', calcFunc);
-      const changeOne = changeTrigger('CHANGE_ONE', state => ({
-        ...state,
-        one: 'newOne',
-      }));
+      const cbFunc              = sinon.spy(one => one),
+            subscriptionCreated = subscription('state.one', calcFunc),
+            changeOne           = changeTrigger('CHANGE_ONE', state => ({
+              ...state,
+              one: 'newOne',
+            }));
 
       expect(cbFunc.called).toBe(true);
     });
 
     test('will not call changeCallback when non-subscribed to part of state is changed', () => {
-      const cbFunc = sinon.spy(one => one);
-      const subscriptionCreated = subscription('state.one', calcFunc);
-      const changeTwo = changeTrigger('CHANGE_TWO', state => ({
-        ...state,
-        two: 'newTwo',
-      }));
+      const cbFunc              = sinon.spy(one => one),
+            subscriptionCreated = subscription('state.one', calcFunc),
+            changeTwo           = changeTrigger('CHANGE_TWO', state => ({
+              ...state,
+              two: 'newTwo',
+            }));
 
       expect(cbFunc.called).toBe(false);
     });
 
     test('will call changeCallback with the changed subscription value as the first argument and the state as the second argument', () => {
-      const cbFunc = sinon.spy(one => one);
-      const subscriptionCreated = subscription('state.one', calcFunc);
-      const changeOne = changeTrigger('CHANGE_ONE', state => ({
-        ...state,
-        one: 'newOne',
-      }));
+      const cbFunc              = sinon.spy(one => one),
+            subscriptionCreated = subscription('state.one', calcFunc),
+            changeOne           = changeTrigger('CHANGE_ONE', state => ({
+              ...state,
+              one: 'newOne',
+            }));
 
       changeOne();
 
@@ -52,13 +52,14 @@ describe('Subscriptions', () => {
     });
 
     test('will use global store instance to register itself per default', () => {
-      var changeSubValue = null;
-      const subFunction = one => changeSubValue = one;
-      const sub = subscription('state.one', calcFunc);
-      const changeOne = changeTrigger('CHANGE_ONE', state => ({
-        ...state,
-        one: 'newOne',
-      }));
+      const subFunction = one => changeSubValue = one,
+            sub         = subscription('state.one', calcFunc),
+            changeOne   = changeTrigger('CHANGE_ONE', state => ({
+              ...state,
+              one: 'newOne',
+            }));
+
+      let changeSubValue = null;
 
       changeOne();
       expect(changeSubValue).toBe('newOne');
