@@ -1,7 +1,7 @@
 import { error, getType, isObject, isString, isFunction, getFuncParamNames } from './util';
 
 export function calculation(calcFunction, subscriptionMap, changeCallback, store){
-  const error = msg => error('calculation()', msg);
+const error = msg => error('calculation()', msg);
 
   /*
     Check input parameters, make it incredibly tight against faulty use
