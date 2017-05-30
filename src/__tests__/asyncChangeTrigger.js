@@ -2,9 +2,9 @@ import { createSlimReduxStore, changeTrigger, asyncChangeTrigger } from '../';
 import { isFunction } from '../util';
 import sinon from 'sinon';
 
-const store = createSlimReduxStore({ one: 'one', two: 'two', three: { four: 'four' } });
-const resetStore = changeTrigger('RESET_STORE', state => ({ one: 'one', two: 'two', three: { four: 'four' } }));
-const noopCt = changeTrigger('NOOP', state => state);
+const store      = createSlimReduxStore({ one: 'one', two: 'two', three: { four: 'four' } }),
+      resetStore = changeTrigger('RESET_STORE', state => ({ one: 'one', two: 'two', three: { four: 'four' } })),
+      noopCt     = changeTrigger('NOOP', state => state);
 
 beforeEach(() => resetStore());
 
@@ -25,30 +25,6 @@ describe('Async change triggers', () => {
 
       act();
       expect(cbFunc.calledWith(altStore.getState())).toBe(true);
-    });
-
-    test('when returned function is invoked it returns a promise', () => {
-      const act = asyncChangeTrigger({ noopCt }, state => noopCt),
-            p   = act();
-
-      // This is a rather stupid check for a promise, but the best we got according to this:
-      // https://stackoverflow.com/questions/27746304/how-do-i-tell-if-an-object-is-a-promise
-      expect(p).toHaveProperty('then');
-    });
-
-    test('when promise that returned function returns on invocation is resolved, it passes in array with triggered actions', () => {
-      const anotherNoopCt = changeTrigger('ANOTHER_NOOP', state => state),
-            f             = jest.fn(),
-            act           = asyncChangeTrigger({ noopCt, anotherNoopCt }, state => { noopCt(); anotherNoopCt(); });
-
-      act().then(f);
-      expect(f).toHaveBeenCalledWith([{
-        type: 'NOOP',
-        payload: {},
-      }, {
-        type: 'ANOTHER_NOOP',
-        payload: {},
-      }]);
     });
   });
 
@@ -78,8 +54,17 @@ describe('Async change triggers', () => {
       expect(() => asyncChangeTrigger({ noopCt }, () => {})).toThrow();
     );
 
-    test('throws when the third argument provided is not a slim-redux instance', () => {});
+    test('throws when the third argument provided is not a slim-redux instance', () =>
+        expect(() => asyncChangeTrigger({ noopCt }, state => state, 'NOT A SLIM-REDUX STORE INSTANCE')).toThrow();
+    );
   });
 
-  describe('asyncChangeTrigger() returned function', () => {})
+  describe('asyncChangeTrigger() returned function', () => {
+    test('when invoked it returns whatever is returned by trigger function', () => {
+      const act       = asyncChangeTrigger({ spyCt }, state => 'RETURN VALUE'),
+            returnVal = act();
+
+      expect(returnVal).toBe('RETURN VALUE');
+    });
+  });
 });
