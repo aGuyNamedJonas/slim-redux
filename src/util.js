@@ -11,6 +11,7 @@ export const isObject = obj => (obj).constructor === Object;
 export const isString = str => (str).constructor === String;
 export const isFunction = func => typeof(func) == 'function'; // Taken from: https://jsperf.com/alternative-isfunction-implementations/4
 export const isBoolean = binary => (binary).constructor === Boolean;
+export const isSet = smthg => (smthg !== undefined && smthg !== null);
 
 /*
   Function which returns an array with the arguments of a function
@@ -28,33 +29,23 @@ export const getFuncParamNames = (func) => {
 }
 
 /*
-  Function which takes a subscription string ('state.todos.active') and returns the corresponding part of the state
-  (or throws an error when not found)
-
+  Validates a subscription string
 */
-const subscriptionStringToState = (subscriptionString, state) => {
+
+export const isSubscriptionStrValid = (str, state) => {
   const subStringParts = subscriptionString.split('.');
   var currentPath = 'state';
-  var subscribedToState = state;
+  var stateFromString = state;
 
   for(var i=1; i < subStringParts.length; i++){
     const nextPath = subStringParts[i];
     currentPath += `.${nextPath}`;
 
-    if(!(nextPath in subscribedToState))
-      return { error: true, errorPath: currentPath }
+    if(!(nextPath in stateFromString))
+      return false;
 
-    subscribedToState = subscribedToState[nextPath];
+    stateFromString = stateFromString[nextPath];
   }
 
-  return { success: true, subscribedToState };
-}
-
-export const mapSubscriptionsToState = (subscriptionMap, state) => {
-  const subscriptions = Object.keys(subscriptionMap);
-  const stateMap = {};
-
-  for(var i=0; i<subscriptions; i++){
-    const subscribedTodState
-  }
+  return true;
 }
