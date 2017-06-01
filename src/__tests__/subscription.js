@@ -15,29 +15,31 @@ describe('Subscriptions', () => {
 
     test('will call changeCallback when subscribed to part of state is changed', () => {
       const cbFunc              = sinon.spy(one => one),
-            subscriptionCreated = subscription('state.one', calcFunc),
+            subscriptionCreated = subscription('state.one', cbFunc),
             changeOne           = changeTrigger('CHANGE_ONE', state => ({
               ...state,
               one: 'newOne',
             }));
 
+      changeOne();
       expect(cbFunc.called).toBe(true);
     });
 
     test('will not call changeCallback when non-subscribed to part of state is changed', () => {
       const cbFunc              = sinon.spy(one => one),
-            subscriptionCreated = subscription('state.one', calcFunc),
+            subscriptionCreated = subscription('state.one', cbFunc),
             changeTwo           = changeTrigger('CHANGE_TWO', state => ({
               ...state,
               two: 'newTwo',
             }));
 
+      changeTwo();
       expect(cbFunc.called).toBe(false);
     });
 
     test('will call changeCallback with the changed subscription value as the first argument and the state as the second argument', () => {
       const cbFunc              = sinon.spy(one => one),
-            subscriptionCreated = subscription('state.one', calcFunc),
+            subscriptionCreated = subscription('state.one', cbFunc),
             changeOne           = changeTrigger('CHANGE_ONE', state => ({
               ...state,
               one: 'newOne',
@@ -46,14 +48,14 @@ describe('Subscriptions', () => {
       changeOne();
 
       expect(cbFunc.calledWith('newOne', {
-        ...state,
+        ...store.getState(),
         one: 'newOne',
       })).toBe(true);
     });
 
     test('will use global store instance to register itself per default', () => {
       const subFunction = one => changeSubValue = one,
-            sub         = subscription('state.one', calcFunc),
+            sub         = subscription('state.one', subFunction),
             changeOne   = changeTrigger('CHANGE_ONE', state => ({
               ...state,
               one: 'newOne',
@@ -87,6 +89,10 @@ describe('Subscriptions', () => {
       expect(() => subscription('', smthg => smthg)).toThrow();
       expect(() => subscription(null, smthg => smthg)).toThrow();
       expect(() => subscription(undefined, smthg => smthg)).toThrow();
+    });
+
+    test('throws an error when subscriptionString does not start with "state"', () => {
+      expect(() => subscription('todos.filter', smthg => smthg)).toThrow();
     });
 
     test('throws when changeCallback is not a function', () => {
