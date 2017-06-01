@@ -17,6 +17,10 @@ export function subscription(subscription, changeCallback, storeArg) {
   if(!isSet(subscription) || isEmptyString(subscription))
     error(`"subscription" (first argument) cannot be null, empty, or undefined: \n ${JSON.stringify(arguments, null, 2)}`);
 
+  // Make sure the subscription string starts with "state"
+  if(subscription.split('.')[0] !== 'state')
+    error(`The "subscription" string does not start with "state". Remember: Subscription strings have to be of the form 'state.todos.filter': \n ${JSON.stringify(arguments, null, 2)}`);
+
   // Check changeCallback
   if(!isFunction(changeCallback))
     error(`"changeCallback" (second argument) needs to be a function, got ${getType(changeCallback)} instead: \n ${JSON.stringify(arguments, null, 2)}`);
