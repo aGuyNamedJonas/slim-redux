@@ -66,6 +66,20 @@ describe('Subscriptions', () => {
       changeOne();
       expect(changeSubValue).toBe('newOne');
     });
+
+    test('subscription() when successful returns a function which can be used to cancel the subscription', () => {
+      const cbFunc             = sinon.spy(one => one),
+            cancelSubscription = subscription('state.one', cbFunc),
+            changeOne          = changeTrigger('CHANGE_ONE', state => ({
+              ...state,
+              one: 'newOne',
+            }));
+
+      cancelSubscription();
+      changeOne();
+
+      expect(cbFunc.called).toBe(true);
+    });
   });
 
   describe('subscription() (error cases)', () => {
