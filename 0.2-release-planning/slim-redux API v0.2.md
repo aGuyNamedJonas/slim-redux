@@ -134,7 +134,7 @@ Also you can pass in a callback into calculation() which gets invoked AFTER any 
 **Parameters:**  
 * `calcFunction`: Function which takes the subscriptions as an argument and then returns a calculated value off of these subscriptions. Anytime any of these subscriptions change, the `calcFunction` is re-invoked.
 * `subscriptionMap`: An object mapping a part of the state to values that will be passed in to the `calcFunction` as arguments.
-* `(optional) changeCallback`: Optional callback which is called whenever the calculation was retriggered. Function receives whatever the calculation returns as arguments and the state as the last argument
+* `changeCallback`: Optional callback which is called whenever the calculation was retriggered. Function receives whatever the calculation returns as arguments and the state as the last argument
 * `(optional) storeInstance`: With this parameter you can specify which store instance to register this calculation with. Default is the global instance.
 
 **Returns:**  
