@@ -1,40 +1,90 @@
-import { error, getType, isObject, isString, isFunction, getFuncParamNames } from './util';
+import { error, getType, isObject, isArray, isSet, isString, isSubscriptionStrValid, isFunction, getFuncParamNames, isSlimReduxStore } from './util';
+import createNotifyingSelector from './notifyingSelector';
 
-export function calculation(calcFunction, subscriptionMap, changeCallback, store){
+export function calculation(calcFunction, subscriptions, changeCallback, storeArg){
 const error = msg => error('calculation()', msg);
 
   /*
-    Check input parameters, make it incredibly tight against faulty use
+    Parameter validation (see tests)
   */
 
   if(arguments.length > 4)
     error(`Only four arguments allowed, got ${arguments.length}: \n ${JSON.stringify(arguments, null, 2)}`);
 
+  // Check subscriptions
+  if(!Array(subscriptions))
+    error(`"subscriptions" (second argument) needs to be of type Array, got \n ${getType(subscriptions)} instead: \n ${JSON.stringify(arguments, null, 2)}`);
+
+  if(!isSet(subscriptions) || subscriptions.length === 0)
+    error(`"subscriptions" (second argument) cannot be undefined, null, or empty: \n ${JSON.stringify(arguments, null, 2)}`);
+
+  // Check calcFunction
   if(!isFunction(calcFunction))
     error(`"calcFunction" (first argument) needs to be a function, got ${getType(actionType)} instead: \n ${JSON.stringify(arguments, null, 2)}`);
 
-  if(!isObject(subscriptionMap))
-    error(`"subscriptionMap" (second argument) needs to be of type Object, got \n ${getType(subscriptionMap)} instead: \n ${JSON.stringify(arguments, null, 2)}`);
+  if(!isSet(calcFunction))
+    error(`"calcFunction" (first argument) cannot be undefined or null: \n ${JSON.stringify(arguments, null, 2)}`);
 
-  if(subscriptionMap === undefined || subscriptionMap === null || Object.keys(subscriptionMap).length === 0)
-    error(`"subscriptionMap" (second argument) cannot be undefined, null, or an empty object: \n ${JSON.stringify(arguments, null, 2)}`);
+  if(getFuncParamNames(calcFunction).length !== subscriptions.length)
+    error(`"calcFunction" (first argument) needs to have as many parameters as subscriptions in this calculation. The calcFunction() should only rely on the subscriptions for state access. \n ${JSON.stringify(arguments, null, 2)}`)
 
-  var subscription
+  // Check changeCallback
+  if(!isSet(changeCallback))
+    error(`"changeCallback" (third argument) cannot be undefined or null:  \n ${JSON.stringify(arguments, null, 2)}`);
+
+  // Check (optional) store instance
+  if(storeArg && !isSlimReduxStore(storeArg))
+    error(`"storeArg" (third argument) is optional, but has to be a slim-redux store instance if provided: \n${JSON.stringify(arguments, null, 2)}`);
+
+  const store = window.store || storeArg;
+
+  if(!store)
+    error(`No store instance provided in global and local scope! In case you set "disableGlobalStore" when creating slim-redux store, make sure to pass it in as the last argument!\n ${JSON.stringify(arguments, null, 2)}`);
+
+  if(!isSlimReduxStore(store))
+    error(`Store instance provided is not a slim-redux store! \n ${JSON.stringify(arguments, null, 2)}`);
+
+  // check subscription strings
+  subscriptions.map((subscription, i) => {
+    if(!isString(subscription))
+      error(`subscriptions need to be of value string, got ${getType(subscription)} for subscriptions[${i}] instead: \n ${JSON.stringify(arguments, null, 2)}`);
+
+    if(!isSubscriptionStrValid(subscription, store.getState()))
+      error(`Cannot find subscription path '${subscription}'  in state (subscriptions[${i}]). Remember: Subscription strings have to be of the form: "state.todos.filter". \n ${JSON.stringify(store.getState(), null, 2)}`);
+  });
 
 
+  /*
+    Implementation
+  */
+  // Same approach as with subscriptions:
+  // #1: Turn subscriptions into functions
+  const subFunctions = subscriptions.map(subscription => {
+    // Straight up copied from the implementation of subscription()...
+    const getStateFunctionString    = `state => ${subscription}`,   // Syntax for a function: state => subscription-string part of state
+          getStateFunction          = eval(getStateFunctionString); // Turn the string from step one into an actual function
 
-  // if(actionType === undefined || actionType === null || actionType.replace(/\s/g, '') === '')
-  //   error(`"actionType" (first argument) cannot be empty, null, undefined or only contain whitespace: \n ${JSON.stringify(arguments, null, 2)}`);
-  //
-  // if(!isString(actionType))
-  //   error(`"actionType" (first argument) needs to be of type String, got ${getType(actionType)} instead: \n ${JSON.stringify(arguments, null, 2)}`);
-  //
-  // if(reducer === undefined || reducer === null)
-  //   error(`"reducer" (second argument) cannot be undefined or null: \n ${JSON.stringify(arguments, null, 2)}`)
-  //
-  // if(!isFunction(reducer))
-  //   error(`"reducer" (second argument) needs to be of type Function, got ${getType(actionType)} instead: \n ${JSON.stringify(arguments, null, 2)}`);
-  //
-  // if(getFuncParamNames(reducer).length === 0)
-  //   error(`"reducer" (second argument) needs to be a function with at least one argument (state) \n ${JSON.stringify(arguments, null, 2)}`);
+    return getStateFunction;
+  })
+
+  // #2: Create notifying selector (using the subscription functions + calcFunction)
+  const checkCalculationSelector = createNotifyingSelector(
+    ...subFunctions,
+    calcFunction,
+  );
+
+  // Initial firing - initially of course the state has changed!
+  checkCalculationSelector(store.getState());
+
+  // #3: Subscribe that bitch in store.subscribe() and only call changeCallback if it actually changed
+  const unsubscribe = store.subscribe(() => {
+    const state             = store.getState(),
+          subscriptionState = checkCalculationSelector(state);
+
+    if(subscriptionState.hasChanged)
+      changeCallback(subscriptionState.data, state);
+  });
+
+  // All done
+  return unsubscribe;
 }

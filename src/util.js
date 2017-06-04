@@ -8,6 +8,7 @@ export const error = (location, msg) => {
 */
 export const getType = whatever => (whatever).constructor;
 export const isObject = obj => (obj).constructor === Object;
+export const isArray = arr => (arr).constructor === Array;
 export const isString = str => (str).constructor === String;
 export const isFunction = func => typeof(func) == 'function'; // Taken from: https://jsperf.com/alternative-isfunction-implementations/4
 export const isBoolean = binary => (binary).constructor === Boolean;
