@@ -56,7 +56,7 @@ export function subscription(subscription, changeCallback, storeArg) {
   checkSubscriptionSelector(store.getState());
 
   // Step #2: Subscribe to state changes (native redux API function), but only trigger changeTrigger() when our subscription has changed
-  store.subscribe(() => {
+  const unsubscribe = store.subscribe(() => {
     const state             = store.getState(),
           subscriptionState = checkSubscriptionSelector(state);
 
@@ -65,5 +65,5 @@ export function subscription(subscription, changeCallback, storeArg) {
   });
 
   // All done!
-  return true;
+  return unsubscribe;
 }

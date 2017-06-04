@@ -8,11 +8,6 @@ beforeEach(() => resetStore());
 
 describe('Subscriptions', () => {
   describe('subscription() (regular / default case)', () => {
-    test('returns true when subscription successfully created', () => {
-      const subscriptionCreated = subscription('state.three.four', four => four);
-      expect(subscriptionCreated).toBe(true);
-    });
-
     test('will call changeCallback when subscribed to part of state is changed', () => {
       const cbFunc              = sinon.spy(one => one),
             subscriptionCreated = subscription('state.one', cbFunc),
@@ -78,7 +73,7 @@ describe('Subscriptions', () => {
       cancelSubscription();
       changeOne();
 
-      expect(cbFunc.called).toBe(true);
+      expect(cbFunc.notCalled).toBe(true);
     });
   });
 
