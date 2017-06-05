@@ -1,7 +1,6 @@
 import { changeTrigger, calculation, createSlimReduxStore } from '../';
 import sinon from 'sinon';
 
-
 const store      = createSlimReduxStore({ one: 'one', two: 'two', three: { four: 'four' } }),
       resetStore = changeTrigger('RESET_STORE', state => ({ one: 'one', two: 'two', three: { four: 'four' } })),
       noopCbFunc = state => {};
@@ -14,7 +13,7 @@ describe('Calculation() (default behavior)', () => {
           changeOne = changeTrigger('CHANGE_ONE', state => ({ ...state, one: 'ONE' })),
           calcFunc  = one => one,
           cbFunc    = sinon.spy(result => result),
-          calc      = calculation(calcFunc, ['state.one'], cbFunc);
+          calc      = calculation(['state.one'], calcFunc, cbFunc);
 
     // Make a change to the subscribed to 'state.one' value
     changeOne();
@@ -28,7 +27,7 @@ describe('Calculation() (default behavior)', () => {
           changeTwo = changeTrigger('CHANGE_TWO', state => ({ ...state, two: 'TWO' })),
           calcFunc  = one => one,
           cbFunc    = sinon.spy(result => result),
-          calc      = calculation(calcFunc, ['state.one'], cbFunc);
+          calc      = calculation(['state.one'], calcFunc, cbFunc);
 
     // Make a change to the NOT SUBSCRIBED TO 'state.two' value
     changeTwo();
@@ -41,7 +40,7 @@ describe('Calculation() (default behavior)', () => {
     const store     = createSlimReduxStore({one: 'one', two: 'two'}),
           changeOne = changeTrigger('CHANGE_ONE', state => ({ ...state, one: 'ONE' })),
           calcFunc  = sinon.spy(one => one),
-          calc      = calculation(calcFunc, ['state.one'], noopCbFunc);
+          calc      = calculation(['state.one'], calcFunc, noopCbFunc);
 
     // Make a change to the subscribed to 'state.one' value
     changeOne();
@@ -55,7 +54,7 @@ describe('Calculation() (default behavior)', () => {
           changeOne = changeTrigger('CHANGE_ONE', state => ({ ...state, one: 'ONE' })),
           calcFunc  = sinon.spy(one => one),
           cbFunc    = sinon.spy(result => result),
-          calc      = calculation(calcFunc, ['state.one'], cbFunc);
+          calc      = calculation(['state.one'], calcFunc, cbFunc);
 
     // Make a change to the subscribed to 'state.one' value
     changeOne();
@@ -70,7 +69,7 @@ describe('Calculation() (default behavior)', () => {
             changeOne      = changeTrigger('CHANGE_ONE', state => ({ ...state, one: 'ONE' })),
             calcFunc       = sinon.spy(one => MODIFIED_VALUE),
             cbFunc         = sinon.spy(result => result),
-            calc           = calculation(calcFunc, ['state.one'], cbFunc);
+            calc           = calculation(['state.one'], calcFunc, cbFunc);
 
       // Make a change to the subscribed to 'state.one' value
       changeOne();
@@ -85,7 +84,7 @@ describe('Calculation() (default behavior)', () => {
           changeOne         = changeTrigger('CHANGE_ONE', state => ({ ...state, one: 'ONE' })),
           calcFunc          = one => one,
           cbFunc            = sinon.spy(result => result),
-          cancelCalculation = calculation(calcFunc, ['state.one'], cbFunc);
+          cancelCalculation = calculation(['state.one'], calcFunc, cbFunc);
 
     // First cancel the calculation and then change that very state to make sure it indeed was cancelled
     cancelCalculation();
@@ -98,58 +97,70 @@ describe('Calculation() (default behavior)', () => {
 describe('Calculation() (error / special cases)', () => {
   test('will throw error when more than 4 arguments are passed in', () => {
     const store = createSlimReduxStore({one: 'one', two: 'two'});
-    expect(() => calculation(one => one, ['one'], noopCbFunc, {store}, 'fifth argument which is not allowed')).toThrow();
+    expect(() => calculation(['state.one'], one => one, noopCbFunc, {store}, 'fifth argument which is not allowed')).toThrow();
   });
 
-  test('will throw error when calcFunction (first argument) is not a function', () => {
+  test('will throw error when subscriptions (first argument) is an empty array', () => {
     const store = createSlimReduxStore({one: 'one', two: 'two'});
-    expect(() => calculation('NOT_A_FUNCTION', ['state.one'], noopCbFunc)).toThrow();
+    expect(() => calculation([], one => one, noopCbFunc)).toThrow();
   });
 
-  test('will throw error when subscriptions (second argument) is an empty array', () => {
+  test('will throw error when subscriptions (first argument) is undefined or null', () => {
     const store = createSlimReduxStore({one: 'one', two: 'two'});
-    expect(() => calculation(one => one, [], noopCbFunc)).toThrow();
+    expect(() => calculation(null, one => one, noopCbFunc)).toThrow();
+    expect(() => calculation(undefined, one => one, noopCbFunc)).toThrow();
   });
 
-  test('will throw error when subscriptions (second argument) is undefined or null', () => {
+  test('will throw error when subscriptions (first argument) is not an array', () => {
     const store = createSlimReduxStore({one: 'one', two: 'two'});
-    expect(() => calculation(one => one, null, noopCbFunc)).toThrow();
-  });
-
-  test('will throw error when subscriptions (second argument) is not an array', () => {
-    const store = createSlimReduxStore({one: 'one', two: 'two'});
-    expect(() => calculation(one => one, 'NOT AN ARRAY', noopCbFunc)).toThrow();
+    expect(() => calculation('NOT AN ARRAY', one => one, noopCbFunc)).toThrow();
   });
 
   test('will throw error when any of the subscriptions values are not a string', () => {
     const store = createSlimReduxStore({one: 'one', two: 'two'});
-    expect(() => calculation(one => one, ['state.one',['not', 'a', 'string']], noopCbFunc)).toThrow();
+    expect(() => calculation(['state.one',['not', 'a', 'string']], one => one, noopCbFunc)).toThrow();
   });
 
   test('will throw an error when any of the subscriptions values (URLs in the state) cannot be found in the state', () => {
     const store = createSlimReduxStore({one: 'one', two: 'two'});
-    expect(() => calculation(one => one, [ 'path.does.not.exist' ], noopCbFunc)).toThrow();
+    expect(() => calculation([ 'path.does.not.exist' ], one => one, noopCbFunc)).toThrow();
+  });
+
+  test('will throw error when calcFunction (second argument) is not a function', () => {
+    const store = createSlimReduxStore({one: 'one', two: 'two'});
+    expect(() => calculation(['state.one'], 'NOT_A_FUNCTION', noopCbFunc)).toThrow();
   });
 
   test('will throw an error when changeCallback (third argument) is null or undefined', () => {
     const store = createSlimReduxStore({one: 'one', two: 'two'});
-    expect(() => calculation(one => one, [ 'path.does.not.exist' ], undefined)).toThrow();
+    expect(() => calculation(['state.one'], one => one, undefined)).toThrow();
   });
 
   test('will throw error when #subscriptions !== #arguments of calcFunction (the calculation should only rely on its subscriptions)', () => {
     const store = createSlimReduxStore({one: 'one', two: 'two'});
-    expect(() => calculation(one => one, ['state.one', 'state.two'], noopCbFunc)).toThrow();
+    expect(() => calculation(['state.one', 'state.two'], one => one, noopCbFunc)).toThrow();
   });
 
   test('will throw error when no global instance of store was found and no local instance provided', () => {
-    const store = createSlimReduxStore({one: 'one', two: 'two'}, { disableGlobalStore: true });
-    expect(() => calculation(one => one, ['state.one'], noopCbFunc)).toThrow();
+    window.store = null;
+    expect(() => calculation(['state.one'], one => one, noopCbFunc)).toThrow();
+    window.store = store;
   });
 
   test('will prefer locally passed in store over global instance', () => {
-    const globalStore = createSlimReduxStore({one: 'one', two: 'two'}),
-          localStore  = createSlimReduxStore({one: 1}, { disableGlobalStore: true }),
-          calc        = calculation(one => one, ['state.one'], noopCbFunc, { store: localStore });
-    expect(calc()).toEqual(1);
+    const cbFunc             = sinon.spy(one => one),
+          localStore         = createSlimReduxStore({one: 1}, { disableGlobalStore: true }),
+          globalStore        = store,
+          cancelSubscription = calculation(['state.one'], one => one, cbFunc, localStore),
+          changeOne          = changeTrigger('CHANGE_ONE', state => ({
+            ...state,
+            one: 'newOne',
+          }));
+
+    // Since we're not passing in a store instance here, this will affect the global store!
+    changeOne();
+
+    // So we're testing for the subscription not having been called!
+    expect(cbFunc.notCalled).toBe(true);
   });
 });

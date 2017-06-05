@@ -1,7 +1,7 @@
 import { error as _err, getType, isObject, isArray, isSet, isString, isSubscriptionStrValid, isFunction, getFuncParamNames, isSlimReduxStore } from './util';
 import createNotifyingSelector from './notifyingSelector';
 
-export function calculation(calcFunction, subscriptions, changeCallback, storeArg){
+export function calculation(subscriptions, calcFunction, changeCallback, storeArg){
 const error = msg => _err('calculation()', msg);
 
   /*
@@ -12,21 +12,21 @@ const error = msg => _err('calculation()', msg);
     error(`Only four arguments allowed, got ${arguments.length}: \n ${JSON.stringify(arguments, null, 2)}`);
 
   // Check subscriptions
-  if(!Array(subscriptions))
-    error(`"subscriptions" (second argument) needs to be of type Array, got \n ${getType(subscriptions)} instead: \n ${JSON.stringify(arguments, null, 2)}`);
+  if(!isArray(subscriptions))
+    error(`"subscriptions" (first argument) needs to be of type Array, got \n ${getType(subscriptions)} instead: \n ${JSON.stringify(arguments, null, 2)}`);
 
   if(!isSet(subscriptions) || subscriptions.length === 0)
-    error(`"subscriptions" (second argument) cannot be undefined, null, or empty: \n ${JSON.stringify(arguments, null, 2)}`);
+    error(`"subscriptions" (first argument) cannot be undefined, null, or empty: \n ${JSON.stringify(arguments, null, 2)}`);
 
   // Check calcFunction
   if(!isFunction(calcFunction))
-    error(`"calcFunction" (first argument) needs to be a function, got ${getType(actionType)} instead: \n ${JSON.stringify(arguments, null, 2)}`);
+    error(`"calcFunction" (second argument) needs to be a function, got ${getType(actionType)} instead: \n ${JSON.stringify(arguments, null, 2)}`);
 
   if(!isSet(calcFunction))
-    error(`"calcFunction" (first argument) cannot be undefined or null: \n ${JSON.stringify(arguments, null, 2)}`);
+    error(`"calcFunction" (second argument) cannot be undefined or null: \n ${JSON.stringify(arguments, null, 2)}`);
 
   if(getFuncParamNames(calcFunction).length !== subscriptions.length)
-    error(`"calcFunction" (first argument) needs to have as many parameters as subscriptions in this calculation. The calcFunction() should only rely on the subscriptions for state access. \n ${JSON.stringify(arguments, null, 2)}`)
+    error(`"calcFunction" (second argument) needs to have as many parameters as subscriptions in this calculation. The calcFunction() should only rely on the subscriptions for state access. \n ${JSON.stringify(arguments, null, 2)}`)
 
   // Check changeCallback
   if(!isSet(changeCallback))
