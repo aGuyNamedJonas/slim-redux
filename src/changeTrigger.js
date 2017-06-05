@@ -1,7 +1,7 @@
-import { error, getType, isString, isFunction, isObject, isSet, getFuncParamNames } from './util';
+import { error as _err, getType, isString, isFunction, isObject, isSet, getFuncParamNames } from './util';
 
 export function changeTrigger(actionType, reducer){
-  const error = msg => error('createSlimReduxStore()', msg);
+  const error = msg => _err('createSlimReduxStore()', msg);
 
   /*
     Check input parameters, make it incredibly tight against faulty use
@@ -32,7 +32,7 @@ export function changeTrigger(actionType, reducer){
         ctReducerFunc           = reducer,
         ctReducerArgumentsCount = ctReducerFunc.length,   // Rename this to payload arguments count?
         ctReducerArgumentsNames = getFuncParamNames(ctReducerFunc),
-        ctError                 = msg => error(`${ctActionType} change trigger function`, msg);
+        ctError                 = msg => _err(`${ctActionType} change trigger function`, msg);
   var   ctRegistered            = false,
         storeParam              = null;
 
@@ -49,12 +49,8 @@ export function changeTrigger(actionType, reducer){
     else
       storeParam = null;
 
-    console.log(`storeParam (local): ${JSON.stringify(storeParam, null, 2)}`);
-
     // Get store either from the parameters, the global scope (if setup) or throw an error
     const store = storeParam || window.store;
-
-    console.log(`store (local / global): ${JSON.stringify(store, null, 2)}`);
 
     if(!isSet(store))
       ctError(`Cannot find slim-redux store instance in arguments (last parameter) of change trigger or in window.store (global scope, set by createSlimReduxStore()). If set the (disableGlobalStore: true) option in createSlimReduxStore(), make sure to pass in the desired slim-redux store instance as the last argument in every change trigger call`);

@@ -1,9 +1,9 @@
 import { createStore } from 'redux';
-import { error, getType, isObject, isFunction, isBoolean } from './util';
+import { error as _err, getType, isObject, isFunction, isBoolean } from './util';
 import reduceReducers from 'reduce-reducers';
 
 export function createSlimReduxStore(initialState, options) {
-  const error = msg => error('createSlimReduxStore()', msg);
+  const error = msg => _err('createSlimReduxStore()', msg);
   global.window = global;
 
   /*
@@ -103,7 +103,7 @@ export function createSlimReduxStore(initialState, options) {
       return reducer(...payload, state);
     else
       return state;
-    
+
   }
 
   // Inject internal reducer

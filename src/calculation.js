@@ -1,8 +1,8 @@
-import { error, getType, isObject, isArray, isSet, isString, isSubscriptionStrValid, isFunction, getFuncParamNames, isSlimReduxStore } from './util';
+import { error as _err, getType, isObject, isArray, isSet, isString, isSubscriptionStrValid, isFunction, getFuncParamNames, isSlimReduxStore } from './util';
 import createNotifyingSelector from './notifyingSelector';
 
 export function calculation(calcFunction, subscriptions, changeCallback, storeArg){
-const error = msg => error('calculation()', msg);
+const error = msg => _err('calculation()', msg);
 
   /*
     Parameter validation (see tests)
@@ -36,9 +36,9 @@ const error = msg => error('calculation()', msg);
   if(storeArg && !isSlimReduxStore(storeArg))
     error(`"storeArg" (third argument) is optional, but has to be a slim-redux store instance if provided: \n${JSON.stringify(arguments, null, 2)}`);
 
-  const store = window.store || storeArg;
+  const store = storeArg || window.store;
 
-  if(!store)
+  if(!isSet(store))
     error(`No store instance provided in global and local scope! In case you set "disableGlobalStore" when creating slim-redux store, make sure to pass it in as the last argument!\n ${JSON.stringify(arguments, null, 2)}`);
 
   if(!isSlimReduxStore(store))
