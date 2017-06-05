@@ -156,10 +156,13 @@ describe('change trigger functions (default cases)', () => {
     expect(globalStoreOn.getState()).toEqual(INITIAL_STATE);
     expect(secondStore.getState()).toEqual(INCREMENTED_STATE);
   });
-      
-  test('change trigger function will return action that it dispatched on invocation', () => { 
-    // Todo: Implement! :)
-    expect(false).toBe(true); 
+
+  test('change trigger function will return action that it dispatched on invocation', () => {
+    const globalStoreOn = createSlimReduxStore(INITIAL_STATE),
+          increment     = changeTrigger(INCREMENT, state => state + 1),
+          returnValue   = increment();
+
+    expect(returnValue).toEqual({type: INCREMENT, payload: {}});
   });
 });
 
@@ -170,6 +173,9 @@ describe('change trigger functions (special cases / error cases)', () => {
         disableGlobalStore: true
       });
       const increment = changeTrigger(INCREMENT, state => state + 1);
+
+      // We're making sure there's no global instance of the slim-redux store available
+      window.store = null;
 
       // This is expected to throw an exception since we turned off the global store instance and don't provide a local instance
       increment();
@@ -200,7 +206,7 @@ describe('change trigger functions (special cases / error cases)', () => {
 
   test('change trigger function will receive local state instance when store is provided as last argument (disableGlobalStore = true)', () => {
     const todoInitialState = { todos: [] };
-    let globalStoreOn      = createSlimReduxStore(INITIAL_STATE, { disableGlobalStore: true });
+    let globalStoreOn      = createSlimReduxStore(INITIAL_STATE);
     let secondStore        = createSlimReduxStore(INITIAL_STATE, { disableGlobalStore: true });
 
     const increment = changeTrigger(INCREMENT, state => state + 1);
