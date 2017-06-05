@@ -116,6 +116,24 @@ describe('Subscriptions', () => {
     test('throws when global store instance could not be found, and no local instance is provided', () => {
       window.store = null;
       expect(() => subscription('state.one', smthg => smthg)).toThrow();
+      window.store = store;
+    });
+
+    test('will prefer locally passed in store over global instance', () => {
+      const cbFunc             = sinon.spy(one => one),
+            localStore         = createSlimReduxStore({one: 1}, { disableGlobalStore: true }),
+            globalStore        = store,
+            cancelSubscription = subscription('state.one', cbFunc, localStore),
+            changeOne          = changeTrigger('CHANGE_ONE', state => ({
+              ...state,
+              one: 'newOne',
+            }));
+
+      // Since we're not passing in a store instance here, this will affect the global store!
+      changeOne();
+
+      // So we're testing for the subscription not having been called!
+      expect(cbFunc.notCalled).toBe(true);
     });
   });
 });
