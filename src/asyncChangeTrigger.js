@@ -1,13 +1,13 @@
 import { error as _err, getType, isArray, isSet, isFunction, getFuncParamNames, isSlimReduxStore } from './util';
 
-export function asyncChangeTrigger(changeTriggers, triggerFunction, storeArg) {
+export function asyncChangeTrigger(changeTriggers, triggerFunction) {
   const error = msg => _err('asyncChangeTrigger()', msg);
 
   /*
     Parameter validation (see tests)
   */
-  if(arguments.length > 3)
-    error(`Only 3 arguments allowed, ${arguments.length} given: \n ${JSON.stringify(arguments, null, 2)}`);
+  if(arguments.length > 2)
+    error(`Only 2 arguments allowed, ${arguments.length} given: \n ${JSON.stringify(arguments, null, 2)}`);
 
   // Check changeTriggers
   if(!isArray(changeTriggers))
@@ -52,5 +52,52 @@ export function asyncChangeTrigger(changeTriggers, triggerFunction, storeArg) {
   /*
     Implementation
   */
-  // TODO :)
+
+  // Setup variables needed inside of our asyncChangeTrigger closure
+  const actFunction           = triggerFunction,
+        actChangeTriggerCount = numberCTs,
+        actError              = msg => _err(`Async change trigger function`, msg);
+
+  var   ctsRegistered         = false,
+        storeParam            = null;
+
+
+  function asyncChangeTriggerFunction(...parameters){
+    // Check for the 'slimReduxOptions' key in the last argument to assess whether it's a slim-redux store
+    const lastArg = parameters[parameters.length - 1];
+
+    if(parameters.length > 0)
+      storeParam = (isObject(lastArg) && isSlimReduxStore(lastArg) ? lastArg : null);
+    else
+      storeParam = null;
+
+    // Get store either from the parameters, the global scope (if setup) or throw an error
+    const store = storeParam || window.store;
+
+    if(!isSet(store))
+      actError(`Cannot find slim-redux store instance in arguments (last parameter) of async change trigger or in window.store (global scope, set by createSlimReduxStore()). If set the (disableGlobalStore: true) option in createSlimReduxStore(), make sure to pass in the desired slim-redux store instance as the last argument in every change trigger call`);
+
+    // If last argument is not a slim-redux store instance, max. amount of arguments can be the amount of changeTriggers setup
+    if(storeParam === null && parameters.length > actChangeTriggerCount)
+      actError(`Last argument doesn't seem to be slim-redux store instance, thus max. allowed arguments: ${ctReducerArgumentsCount - 1}, got ${parameters.length} instead: \n ${JSON.stringify(parameters, null, 2)}`);
+
+    if(storeParam !== null && parameters.length > ctReducerArgumentsCount)
+      actError(`Last argument seems to be slim-redux store instance, thus max. allowed arguments: ${ctReducerArgumentsCount}, got ${parameters.length} instead: \n ${JSON.stringify(parameters, null, 2)}`);
+
+    // if(parameters.length < ctReducerArgumentsCount)
+    //   actError(``)
+
+
+    //
+    //
+    //    THIS IS SO BADLY FUCKED UP! GET YOUR SHIT RIGHT, THEN REWRITE THE TEST FOR THIS!
+    //
+    //
+
+  }
+
+  // const storeInjectedCTs = changeTriggers.map(changeTrigger => {
+  //   (...args) => changeTrigger.apply([...args, store.getState()]);
+  // });
+
 }

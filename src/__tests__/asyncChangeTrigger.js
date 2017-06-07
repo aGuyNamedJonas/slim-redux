@@ -15,22 +15,11 @@ describe('Async change triggers', () => {
         asyncChangeTrigger([ noopCt ], (noopCt, state) => state)
       )
     ).toBe(true));
-
-    test('passes the provided store instance to change triggers invoked', () => {
-      // This is possible by having change triggers be wrapped in another function which passes in the store as the last argument!
-      const reducer  = sinon.spy(state => state),
-            altStore = createSlimReduxStore({ alt: 'altStore' }),
-            spyCt    = changeTrigger('NOOP', reducer),
-            act      = asyncChangeTrigger([ spyCt ], (spyCt, state) => spyCt(), altStore);
-
-      act();
-      expect(cbFunc.calledWith(altStore.getState())).toBe(true);
-    });
   });
 
   describe('asyncChangeTrigger() (error cases)', () => {
-    test('throws when more than three arguments are provided', () => {
-      expect(() => asyncChangeTrigger([ noopCt ], (noopCt, state) => state, store, 'ILLEGAL FOURTH ARGUMENT')).toThrow();
+    test('throws when more than two arguments are provided', () => {
+      expect(() => asyncChangeTrigger([ noopCt ], (noopCt, state) => state, 'ILLEGAL THIRD ARGUMENT')).toThrow();
     });
 
     test('throws when change triggers (first argument) is not an array', () => {
@@ -61,10 +50,6 @@ describe('Async change triggers', () => {
       // Too many arguments
       expect(() => asyncChangeTrigger([ noopCt ], (too, many, args) => {})).toThrow();
     });
-
-    test('throws when the third argument provided is not a slim-redux instance', () => {
-        expect(() => asyncChangeTrigger([ noopCt ], (noopCt, state) => state, 'NOT A SLIM-REDUX STORE INSTANCE')).toThrow();
-    });
   });
 
   describe('asyncChangeTrigger() returned function', () => {
@@ -74,5 +59,20 @@ describe('Async change triggers', () => {
 
       expect(returnVal).toBe('RETURN VALUE');
     });
+  });
+
+  test('throws when the third argument provided is not a slim-redux instance', () => {
+      expect(() => asyncChangeTrigger([ noopCt ], (noopCt, state) => state, 'NOT A SLIM-REDUX STORE INSTANCE')).toThrow();
+  });
+
+  test('passes the provided store instance to change triggers invoked', () => {
+    // This is possible by having change triggers be wrapped in another function which passes in the store as the last argument!
+    const reducer  = sinon.spy(state => state),
+          altStore = createSlimReduxStore({ alt: 'altStore' }),
+          spyCt    = changeTrigger('NOOP', reducer),
+          act      = asyncChangeTrigger([ spyCt ], (spyCt, state) => spyCt());
+
+    act(altStore);
+    expect(cbFunc.calledWith(altStore.getState())).toBe(true);
   });
 });
