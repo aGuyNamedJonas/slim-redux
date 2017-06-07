@@ -157,12 +157,15 @@ describe('change trigger functions (default cases)', () => {
     expect(secondStore.getState()).toEqual(INCREMENTED_STATE);
   });
 
-  test('change trigger function will return action that it dispatched on invocation', () => {
+  test('change trigger function will return object with dispatched action and state', () => {
     const globalStoreOn = createSlimReduxStore(INITIAL_STATE),
           increment     = changeTrigger(INCREMENT, state => state + 1),
           returnValue   = increment();
 
-    expect(returnValue).toEqual({type: INCREMENT, payload: {}});
+    expect(returnValue).toEqual({
+      action: {type: INCREMENT, payload: {}},
+      state : globalStoreOn.getState(), 
+    });
   });
 });
 

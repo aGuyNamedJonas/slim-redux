@@ -80,8 +80,11 @@ export function changeTrigger(actionType, reducer){
 
     const action = { type: ctActionType, payload };
 
+    // Dispatch action
     store.dispatch(action);
-    return action;
+
+    // Return dispatched action and the new state
+    return { action, state: store.getState() };
   }
 
   return changeTriggerFunction;
