@@ -1,3 +1,5 @@
+import intersection from 'lodash.intersection';
+
 export const error = (location, msg) => {
   throw new Error(`*** Error in ${location}: ${msg}`)
 }
@@ -14,6 +16,7 @@ export const isFunction = func => typeof(func) == 'function'; // Taken from: htt
 export const isBoolean = binary => (binary).constructor === Boolean;
 export const isSet = smthg => (smthg !== undefined && smthg !== null);
 export const isEmptyString = str => (str.replace(/^\s\s*/, '').replace(/\s\s*$/, '') === ''); // Taken from: https://stackoverflow.com/questions/3000649/trim-spaces-from-start-and-end-of-string
+export const isEmptyObject = obj => (Object.keys(obj).length === 0);
 export const isSlimReduxStore = obj => (obj.slimReduxOptions);
 
 /*
@@ -54,3 +57,8 @@ export const isSubscriptionStrValid = (str, state) => {
 
   return true;
 }
+
+/*
+  Checks whether two arrays contain any duplicates, or not
+*/
+export const isDuplicateFree = (a, b) => (intersection(a, b).length === 0);

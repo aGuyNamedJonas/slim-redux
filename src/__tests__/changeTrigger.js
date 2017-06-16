@@ -164,7 +164,7 @@ describe('change trigger functions (default cases)', () => {
 
     expect(returnValue).toEqual({
       action: {type: INCREMENT, payload: {}},
-      state : globalStoreOn.getState(), 
+      state : globalStoreOn.getState(),
     });
   });
 });

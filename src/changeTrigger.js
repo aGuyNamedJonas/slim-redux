@@ -15,7 +15,7 @@ export function changeTrigger(actionType, reducer){
   if(!isString(actionType))
     error(`"actionType" (first argument) needs to be of type String, got ${getType(actionType)} instead: \n ${JSON.stringify(arguments, null, 2)}`);
 
-  if(reducer === undefined || reducer === null)
+  if(!isSet(reducer))
     error(`"reducer" (second argument) cannot be undefined or null: \n ${JSON.stringify(arguments, null, 2)}`)
 
   if(!isFunction(reducer))
