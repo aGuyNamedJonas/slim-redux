@@ -167,6 +167,32 @@ describe('change trigger functions (default cases)', () => {
       state : globalStoreOn.getState(),
     });
   });
+
+  test('change trigger function can be created with multiple arguments', () => {
+    const globalStoreOn = createSlimReduxStore(INITIAL_STATE),
+          increment     = changeTrigger(INCREMENT, (inc, dec, state) => (state + inc - dec)),
+          returnValue   = increment(4, 2);
+
+    expect(globalStoreOn.getState()).toBe(INITIAL_STATE + 2);
+  });
+
+  test('arguments for trigger function are always provided in the order they were given on invocation of change trigger', () => {
+    const globalStoreOn = createSlimReduxStore(INITIAL_STATE),
+          triggerFunc   = jest.fn((first, second, third, state) => state),
+          noopCt        = changeTrigger('NOOP', triggerFunc)
+          argSetOne     = ['arg one', 'arg two', 'arg three'],
+          argSetOne     = ['arg three', 'arg one', 'arg two'],
+          argSetOne     = ['arg two', 'arg one', 'arg three'];
+
+    noopCt.apply(null, argSetOne);
+    expect(triggerFunc).toHaveBeenCalledWith(...argSetOne);
+
+    noopCt.apply(null, argSetTwo);
+    expect(triggerFunc).toHaveBeenCalledWith(...argSetTwo);
+
+    noopCt.apply(null, argSetThree);
+    expect(triggerFunc).toHaveBeenCalledWith(...argSetThree);
+  });
 });
 
 describe('change trigger functions (special cases / error cases)', () => {

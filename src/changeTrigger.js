@@ -73,10 +73,10 @@ export function changeTrigger(actionType, reducer){
     /*
       Prepare action and then dispatch it
     */
-    var payload = {};
+    var payload = [];
 
     for(var i=0; i<ctReducerArgumentsCount - 1; i++)
-      payload[ctReducerArgumentsNames[i]] = parameters[i];
+      payload.push(parameters[i]);
 
     const action = { type: ctActionType, payload };
 
