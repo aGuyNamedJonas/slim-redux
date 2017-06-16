@@ -92,9 +92,6 @@ export function createSlimReduxStore(initialState, options) {
     Setup internal slim-redux reducer
   */
   function slimReduxReducer(state, action){
-    // console.log(`Calling slim-redux reducer, with state: ${state} and action: ${JSON.stringify(action, null, 2)}`)
-    // console.log(`Checking out the this context of the internal reducer: ${JSON.stringify(this.slimReduxChangeTriggers, null, 2)} ${JSON.stringify(this.slimReduxOptions, null, 2)}`);
-    //
     const actionType = action.type,
           payload    = action.payload,
           reducer    = (this.slimReduxChangeTriggers[actionType] ? this.slimReduxChangeTriggers[actionType] : null);
