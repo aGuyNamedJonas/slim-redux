@@ -5,7 +5,8 @@
   "main": "simple.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon simple.js --exec babel-node --presets es2015,stage-2"
+    "start": "nodemon simple.js --exec babel-node --presets es2015,stage-2",
+    "debug": "nodemon simple.js --exec babel-node --presets es2015,stage-2 --inspect --debug-brk"
   },
   "author": "",
   "license": "ISC",
