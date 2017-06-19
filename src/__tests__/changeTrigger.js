@@ -47,12 +47,30 @@ describe('changeTrigger() (default behavior)', () => {
     // We'll know the second argument passed in is the reducer, if it worked to alter the state as expected
     expect(store.getState()).toEqual(INCREMENTED_STATE);
   });
+
+  test('when optional third subscription string is set, reducer function will only receive that part of state', () => {
+    const store         = createSlimReduxStore({ counter: INITIAL_STATE, b: 'b', c: 'c' }),
+          triggerFunc   = jest.fn((counter) => counter + 1),
+          increment     = changeTrigger('INCREMENT', triggerFunc, 'state.counter');
+
+    increment();
+    expect(triggerFunc).toHaveBeenCalledWith(INITIAL_STATE);
+  });
+
+  test('when optional third subscription string is set, reducer function will only be able to modify that part of the state', () => {
+    const store         = createSlimReduxStore({ counter: INITIAL_STATE, b: 'b', c: 'c' }),
+          triggerFunc   = jest.fn((counter) => counter + 1),
+          increment     = changeTrigger('INCREMENT', triggerFunc, 'state.counter');
+
+    increment();
+    expect(store.getState()).toMatchObject({ counter: INCREMENTED_STATE, b: 'b', c: 'c' });
+  });
 });
 
 describe('changeTrigger() (error / special cases)', () => {
-  test('throws an exception when it receives more than two arguments', () => {
+  test('throws an exception when it receives more than three arguments', () => {
     expect(() => {
-      const ctFuncFail = changeTrigger('ADD_TODO', state => state, 'This argument should not be here');
+      const ctFuncFail = changeTrigger('ADD_TODO', state => state, `state`, 'This argument should not be here');
     }).toThrow();
   });
 
@@ -94,6 +112,18 @@ describe('changeTrigger() (error / special cases)', () => {
   test('throws an exception when the reducer function has no arguments', () => {
     expect(() => {
       const ctFuncFail = changeTrigger('ADD_TODO', () => {});
+    }).toThrow();
+  });
+
+  test('throws when optional third argument is not a string', () => {
+    expect(() => {
+      const ctFuncFail = changeTrigger('ADD_TODO', state => state, ['not', 'a', 'string']);
+    }).toThrow();
+  });
+
+  test('throws when optional third argument (a subscription style string) cannot be found in the state', () => {
+    expect(() => {
+      const ctFuncFail = changeTrigger('ADD_TODO', state => state, 'state.cannot.be.found');
     }).toThrow();
   });
 });
