@@ -1,4 +1,5 @@
 import { error as _err, getType, isObject, isArray, isSet, isString, isSubscriptionStrValid, isFunction, getFuncParamNames, isSlimReduxStore } from './util';
+import { CANCEL_SUBSCRIPTION } from './constants';
 import createNotifyingSelector from './notifyingSelector';
 
 export function calculation(subscriptions, calcFunction, changeCallback, storeArg){
@@ -76,15 +77,22 @@ const error = msg => _err('calculation()', msg);
   // Initial firing - initially of course the state has changed!
   checkCalculationSelector(store.getState());
 
-  // #3: Subscribe that bitch in store.subscribe() and only call changeCallback if it actually changed
+  // #3: Subscribe calculation using store.subscribe() and only call changeCallback if it actually changed
   const unsubscribe = store.subscribe(() => {
-    const state             = store.getState(),
-          subscriptionState = checkCalculationSelector(state);
+    const subscriptionState = checkCalculationSelector(store.getState());
 
     if(subscriptionState.hasChanged)
-      changeCallback(subscriptionState.data, state);
+      changeCallback(subscriptionState.data, store.getState());
   });
 
-  // All done
-  return unsubscribe;
+  // #4: Create the function which will be returned
+  const getCalculationOrUnsubscribe = (instruction) => {
+    if(instruction === CANCEL_SUBSCRIPTION)
+      unsubscribe();
+    else
+      return checkCalculationSelector(store.getState()).data;    // Returns the calculation value
+  }
+
+  // All done!
+  return getCalculationOrUnsubscribe;
 }

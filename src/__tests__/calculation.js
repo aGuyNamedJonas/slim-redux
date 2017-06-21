@@ -1,4 +1,4 @@
-import { changeTrigger, calculation, createSlimReduxStore } from '../';
+import { changeTrigger, calculation, createSlimReduxStore, CANCEL_SUBSCRIPTION } from '../';
 import sinon from 'sinon';
 
 const store      = createSlimReduxStore({ one: 'one', two: 'two', three: { four: 'four' } }),
@@ -79,6 +79,18 @@ describe('Calculation() (default behavior)', () => {
   });
 
   // Inspired by observables <3
+  test('calculation() when successful returns a function which can be used to get the value of the calculation', () => {
+    const store          = createSlimReduxStore({one: 'one', two: 'two'}),
+          changeOne      = changeTrigger('CHANGE_ONE', state => ({ ...state, one: 'newOne' })),
+          calcFunc       = one => one + '+1',
+          cbFunc         = sinon.spy(result => result),
+          getCalculation = calculation(['state.one'], calcFunc, cbFunc);
+
+    changeOne();
+
+    expect(getCalculation()).toEqual('newOne+1');
+  });
+
   test('calculation() when successful returns a function which can be used to cancel the calculation', () => {
     const store             = createSlimReduxStore({one: 'one', two: 'two'}),
           changeOne         = changeTrigger('CHANGE_ONE', state => ({ ...state, one: 'ONE' })),
@@ -87,7 +99,7 @@ describe('Calculation() (default behavior)', () => {
           cancelCalculation = calculation(['state.one'], calcFunc, cbFunc);
 
     // First cancel the calculation and then change that very state to make sure it indeed was cancelled
-    cancelCalculation();
+    cancelCalculation(CANCEL_SUBSCRIPTION);
     changeOne();
 
     expect(cbFunc.called).toBe(false);
