@@ -48,7 +48,6 @@ export function subscription(subscription, changeCallback, storeArg) {
   // Step #1: Create a notifying selector out of a function we build using the subscription string
   const getStateFunctionString    = `state => ${subscription}`,   // Syntax for a function: state => subscription-string part of state
         getStateFunction          = eval(getStateFunctionString), // Turn the string from step one into an actual function
-        getSubscriptionValue      = () => getStateFunction(store.getState()),  // Returns the subscription value
         checkSubscriptionSelector = createNotifyingSelector(      // Create subscrption selector using the function we just created
           getStateFunction,
           data => data,
@@ -59,11 +58,10 @@ export function subscription(subscription, changeCallback, storeArg) {
 
   // Step #2: Subscribe to state changes (native redux API function), but only trigger changeTrigger() when our subscription has changed
   const unsubscribe = store.subscribe(() => {
-    const state             = store.getState(),
-          subscriptionState = checkSubscriptionSelector(state);
+    const subscriptionState = checkSubscriptionSelector(store.getState());
 
     if(subscriptionState.hasChanged)
-      changeCallback(subscriptionState.data, state);
+      changeCallback(subscriptionState.data, store.getState());
   });
 
   // Step #3: Create getter for subscription value / unsubscribe function
@@ -71,7 +69,7 @@ export function subscription(subscription, changeCallback, storeArg) {
     if(instruction === CANCEL_SUBSCRIPTION)
       unsubscribe();
     else
-      return getSubscriptionValue();
+      return checkSubscriptionSelector(store.getState()).data;    // Returns the subscription value
   }
 
   // All done!
