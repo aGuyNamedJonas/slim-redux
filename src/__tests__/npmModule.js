@@ -1,4 +1,4 @@
-import { createSlimReduxStore, changeTrigger, asyncChangeTrigger, calculation, subscription } from '../';  // It's important we import the functions are they are being exported by the module
+import { createSlimReduxStore, changeTrigger, asyncChangeTrigger, calculation, subscription, CANCEL_SUBSCRIPTION } from '../';  // It's important we import the functions are they are being exported by the module
 
 describe('NPM module', () => {
   test('exports createSlimReduxStore()', () => {
@@ -24,5 +24,10 @@ describe('NPM module', () => {
   test('exports subscription()', () => {
     expect(subscription).toBeTruthy();
     expect(subscription).not.toBeUndefined();
+  });
+
+  test('exports CANCEL_SUBSCRIPTION constant', () => {
+    expect(CANCEL_SUBSCRIPTION).toBeTruthy();
+    expect(CANCEL_SUBSCRIPTION).not.toBeUndefined();
   });
 });

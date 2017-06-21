@@ -1,4 +1,4 @@
-import { changeTrigger, createSlimReduxStore, subscription } from '../';
+import { changeTrigger, createSlimReduxStore, subscription, CANCEL_SUBSCRIPTION } from '../';
 import sinon from 'sinon';
 
 const store      = createSlimReduxStore({ one: 'one', two: 'two', three: { four: 'four' } }),
@@ -62,7 +62,20 @@ describe('Subscriptions', () => {
       expect(changeSubValue).toBe('newOne');
     });
 
-    test('subscription() when successful returns a function which can be used to cancel the subscription', () => {
+    test('subscription() when successful returns a function which can be used to get the value of the subscription', () => {
+      const cbFunc          = sinon.spy(one => one),
+            getSubscription = subscription('state.one', cbFunc),
+            changeOne       = changeTrigger('CHANGE_ONE', state => ({
+              ...state,
+              one: 'newOne',
+            }));
+
+      changeOne();
+
+      expect(getSubscription()).toEqual('newOne');
+    });
+
+    test('subscription() when successful returns a function which can be used to cancel the subscription by passing in the CANCEL_SUBSCRIPTION constant', () => {
       const cbFunc             = sinon.spy(one => one),
             cancelSubscription = subscription('state.one', cbFunc),
             changeOne          = changeTrigger('CHANGE_ONE', state => ({
@@ -70,7 +83,7 @@ describe('Subscriptions', () => {
               one: 'newOne',
             }));
 
-      cancelSubscription();
+      cancelSubscription(CANCEL_SUBSCRIPTION);
       changeOne();
 
       expect(cbFunc.notCalled).toBe(true);

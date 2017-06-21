@@ -1,4 +1,5 @@
 import { error as _err, getType, isString, isFunction, isSet, isEmptyString, isSlimReduxStore, isSubscriptionStrValid } from './util';
+import { CANCEL_SUBSCRIPTION } from './constants';
 import createNotifyingSelector from './notifyingSelector';
 
 export function subscription(subscription, changeCallback, storeArg) {
@@ -47,6 +48,7 @@ export function subscription(subscription, changeCallback, storeArg) {
   // Step #1: Create a notifying selector out of a function we build using the subscription string
   const getStateFunctionString    = `state => ${subscription}`,   // Syntax for a function: state => subscription-string part of state
         getStateFunction          = eval(getStateFunctionString), // Turn the string from step one into an actual function
+        getSubscriptionValue      = () => getStateFunction(store.getState()),  // Returns the subscription value
         checkSubscriptionSelector = createNotifyingSelector(      // Create subscrption selector using the function we just created
           getStateFunction,
           data => data,
@@ -64,6 +66,14 @@ export function subscription(subscription, changeCallback, storeArg) {
       changeCallback(subscriptionState.data, state);
   });
 
+  // Step #3: Create getter for subscription value / unsubscribe function
+  const getStateOrUnsubscribe = (instruction) => {
+    if(instruction === CANCEL_SUBSCRIPTION)
+      unsubscribe();
+    else
+      return getSubscriptionValue();
+  }
+
   // All done!
-  return unsubscribe;
+  return getStateOrUnsubscribe;
 }
