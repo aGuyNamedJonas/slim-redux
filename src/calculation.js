@@ -1,4 +1,4 @@
-import { error as _err, getType, isObject, isArray, isSet, isString, isSubscriptionStrValid, isFunction, getFuncParamNames, isSlimReduxStore } from './util';
+import { error as _err, getType, isObject, isArray, isSet, isString, isSubscriptionStrValid, isFunction, isSlimReduxStore } from './util';
 import { CANCEL_SUBSCRIPTION } from './constants';
 import createNotifyingSelector from './notifyingSelector';
 
@@ -25,9 +25,6 @@ const error = msg => _err('calculation()', msg);
 
   if(!isSet(calcFunction))
     error(`"calcFunction" (second argument) cannot be undefined or null: \n ${JSON.stringify(arguments, null, 2)}`);
-
-  if(getFuncParamNames(calcFunction).length !== subscriptions.length)
-    error(`"calcFunction" (second argument) needs to have as many parameters as subscriptions in this calculation. The calcFunction() should only rely on the subscriptions for state access. \n ${JSON.stringify(arguments, null, 2)}`)
 
   // Check changeCallback
   if(!isSet(changeCallback))

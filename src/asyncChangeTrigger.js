@@ -1,4 +1,4 @@
-import { error as _err, getType, isObject, isEmptyObject, isSet, isFunction, getFuncParamNames, isDuplicateFree, isSlimReduxStore } from './util';
+import { error as _err, getType, isObject, isEmptyObject, isSet, isFunction, isDuplicateFree, isSlimReduxStore } from './util';
 
 export function asyncChangeTrigger(changeTriggers, triggerFunction) {
   const error = msg => _err('asyncChangeTrigger()', msg);
@@ -22,12 +22,6 @@ export function asyncChangeTrigger(changeTriggers, triggerFunction) {
 
   if(!isSet(triggerFunction))
     error(`"triggerFunction" (second argument) cannot be null or undefined: \n ${JSON.stringify(arguments, null, 2)}`);
-
-  const argNames = getFuncParamNames(triggerFunction),
-        ctNames  = Object.keys(changeTriggers);
-
-  if(!isDuplicateFree(argNames, ctNames))
-    error(`It looks like you included the names of one or more change triggers in the arguments of your "triggerFunction" (second argument). Change triggers can be called from inside the trigger function using this: this.changeTrigger(arguments) \n ${JSON.stringify(arguments, null, 2)}`);
 
 
   /*
