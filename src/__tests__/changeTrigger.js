@@ -126,6 +126,12 @@ describe('changeTrigger() (error / special cases)', () => {
       const ctFuncFail = changeTrigger('ADD_TODO', state => state, 'state.cannot.be.found');
     }).toThrow();
   });
+
+  test('throws when optional third argument (a subscription style string) is an empty string', () => {
+    expect(() => {
+      const ctFuncFail = changeTrigger('ADD_TODO', state => state, '');
+    }).toThrow();
+  });
 });
 
 describe('change trigger functions (default cases)', () => {

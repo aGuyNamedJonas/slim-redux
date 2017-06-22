@@ -92,13 +92,28 @@ export function createSlimReduxStore(initialState, options) {
     Setup internal slim-redux reducer
   */
   function slimReduxReducer(state, action){
-    const actionType = action.type,
-          payload    = action.payload,
-          reducer    = (this.slimReduxChangeTriggers[actionType] ? this.slimReduxChangeTriggers[actionType] : null);
+    const actionType           = action.type,
+          payload              = action.payload,
+          actionTypeRegistered = (this.slimReduxChangeTriggers[actionType] !== undefined);
 
-    if(reducer)
+    if(actionTypeRegistered){
+      const reducer        = this.slimReduxChangeTriggers[actionType].reducer,
+            focusSubString = this.slimReduxChangeTriggers[actionType].focusSubString,
+            getFocusState  = this.slimReduxChangeTriggers[actionType].getFocusState,
+            setFocusState  = this.slimReduxChangeTriggers[actionType].setFocusState;
+
+      // Case #1: Focus subscription string was set --> Change trigger function only gets executed on a part of the state
+      if(focusSubString){
+        const focusState    = getFocusState(state),
+              newFocusState = reducer(...payload, focusState),
+              newState      = setFocusState(newFocusState, state);
+
+        return newState;
+      }
+
+      // Case #2: Focus subscription string null --> Execute change trigger function on complete state
       return reducer(...payload, state);
-    else
+    } else
       return state;
 
   }

@@ -1,7 +1,7 @@
 {
   "author": "Jonas Peeck <jonas.peeck@googlemail.com> (https://twitter.com/aguynamedjonas)",
   "name": "slim-redux",
-  "description": "Alternative interface for redux which aims to be less boilerplate, faster to code, and easier to reason about by bundling action and reducer definitions in one place. 100% redux compatible!",
+  "description": "Boilerplate free interface for redux. 100% compatible with your existing redux setup 🙌🏻",
   "keywords": [
     "redux",
     "alternative",

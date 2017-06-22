@@ -1,6 +1,6 @@
-import { error as _err, getType, isString, isFunction, isObject, isSet, getFuncParamNames } from './util';
+import { error as _err, getType, isString, isFunction, isObject, isSet, getFuncParamNames, isSubscriptionStrValid } from './util';
 
-export function changeTrigger(actionType, reducer){
+export function changeTrigger(actionType, reducer, focusSubString){
   const error = msg => _err('createSlimReduxStore()', msg);
 
   /*
@@ -24,6 +24,12 @@ export function changeTrigger(actionType, reducer){
   if(getFuncParamNames(reducer).length === 0)
     error(`"reducer" (second argument) needs to be a function with at least one argument (state) \n ${JSON.stringify(arguments, null, 2)}`);
 
+  if(isSet(focusSubString) && !isString(focusSubString))
+    error(`"focusSubString" (optional third argument) needs to be a string \n ${JSON.stringify(arguments, null, 2)}`);
+
+  if(isSet(focusSubString) && isEmptyString(focusSubString))
+    error(`"focusSubString" (optional third argument) cannot be empty \n ${JSON.stringify(arguments, null, 2)}`);
+
 
   /*
     Setup all the things the change trigger function needs inside a closure (ct = change trigger)
@@ -32,7 +38,9 @@ export function changeTrigger(actionType, reducer){
         ctReducerFunc           = reducer,
         ctReducerArgumentsCount = ctReducerFunc.length,   // Rename this to payload arguments count?
         ctReducerArgumentsNames = getFuncParamNames(ctReducerFunc),
-        ctError                 = msg => _err(`${ctActionType} change trigger function`, msg);
+        ctError                 = msg => _err(`${ctActionType} change trigger function`, msg),
+        ctFocusSubString        = focusSubString || null;
+        
   var   ctRegistered            = false,
         storeParam              = null;
 
@@ -66,7 +74,29 @@ export function changeTrigger(actionType, reducer){
       Register change trigger in slim-redux reducer, if not done yet
     */
     if(!ctRegistered){
-      store.slimReduxChangeTriggers[ctActionType] = ctReducerFunc;
+      // Check the subscription string of the change trigger
+      if(isSet(ctFocusSubString) && !isSubscriptionStrValid(ctFocusSubString, store.getState()))
+        ctError(`"focusSubString" (${ctFocusSubString}) could not be found in state \n ${JSON.stringify(store.getState(), null, 2)}`);
+
+      store.slimReduxChangeTriggers[ctActionType] = {
+        reducer        : ctReducerFunc,      // change trigger function
+        focusSubString : ctFocusSubString,   // subscription string which dictates the focus of the change trigger function
+        getFocusState  : null,
+        setFocusState  : null,
+      };
+
+      // If change trigger has a focus string, set that up
+      if(ctFocusSubString) {
+        // Take the last part off of the subscription string
+        var focusSubStringParts = ctFocusSubString.split('.');
+        focusSubStringParts.pop();
+      
+        const ctFocusSetterString = focusSubStringParts.join('.');
+
+        store.slimReduxChangeTriggers[ctActionType].getFocusState = eval(`state => ${ctFocusSubString}`),  // function which will return the part of the state that the change trigger processes
+        store.slimReduxChangeTriggers[ctActionType].setFocusState = eval(`(value, state) => { ${ctFocusSetterString} = value; return state; }`) // function which will set a part of the state and return the full state
+      }
+
       ctRegistered = true;
     }
 
