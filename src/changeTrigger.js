@@ -1,16 +1,16 @@
-import { error as _err, getType, isString, isFunction, isObject, isSet, getFuncParamNames, isSubscriptionStrValid } from './util';
+import { error as _err, getType, isString, isFunction, isObject, isSet, isEmptyString, getFuncParamNames, isSubscriptionStrValid } from './util';
 
 export function changeTrigger(actionType, reducer, focusSubString){
-  const error = msg => _err('createSlimReduxStore()', msg);
+  const error = msg => _err('changeTrigger()', msg);
 
   /*
     Check input parameters, make it incredibly tight against faulty use
   */
-  if(arguments.length > 2)
-    error(`Only two arguments allowed, got ${arguments.length}: \n ${JSON.stringify(arguments, null, 2)}`);
+  if(arguments.length > 3)
+    error(`Only three arguments allowed, got ${arguments.length}: \n ${JSON.stringify(arguments, null, 2)}`);
 
-    if(actionType === undefined || actionType === null || actionType.replace(/\s/g, '') === '')
-      error(`"actionType" (first argument) cannot be empty, null, undefined or only contain whitespace: \n ${JSON.stringify(arguments, null, 2)}`);
+  if(actionType === undefined || actionType === null || actionType.replace(/\s/g, '') === '')
+    error(`"actionType" (first argument) cannot be empty, null, undefined or only contain whitespace: \n ${JSON.stringify(arguments, null, 2)}`);
 
   if(!isString(actionType))
     error(`"actionType" (first argument) needs to be of type String, got ${getType(actionType)} instead: \n ${JSON.stringify(arguments, null, 2)}`);
