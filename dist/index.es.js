@@ -47,20 +47,6 @@ var isSlimReduxStore = function isSlimReduxStore(obj) {
 };
 
 /*
-  Function which returns an array with the arguments of a function
-  Stolen from: http://stackoverflow.com/questions/1007981/how-to-get-function-parameter-names-values-dynamically-from-javascript
-*/
-var STRIP_COMMENTS = /(\/\/.*$)|(\/\*[\s\S]*?\*\/)|(\s*=[^,\)]*(('(?:\\'|[^'\r\n])*')|("(?:\\"|[^"\r\n])*"))|(\s*=[^,\)]*))/mg;
-var ARGUMENT_NAMES = /([^\s,]+)/g;
-
-var getFuncParamNames = function getFuncParamNames(func) {
-  var fnStr = func.toString().replace(STRIP_COMMENTS, '');
-  var result = fnStr.slice(fnStr.indexOf('(') + 1, fnStr.indexOf(')')).match(ARGUMENT_NAMES);
-  if (result === null) result = [];
-  return result;
-};
-
-/*
   Validates a subscription string
 */
 
@@ -85,9 +71,6 @@ var isSubscriptionStrValid = function isSubscriptionStrValid(str, state) {
 /*
   Checks whether two arrays contain any duplicates, or not
 */
-var isDuplicateFree = function isDuplicateFree(a, b) {
-  return intersection(a, b).length === 0;
-};
 
 function createSlimReduxStore(initialState, options) {
   var error$$1 = function error$$1(msg) {
@@ -172,9 +155,26 @@ function createSlimReduxStore(initialState, options) {
   function slimReduxReducer(state, action) {
     var actionType = action.type,
         payload = action.payload,
-        reducer = this.slimReduxChangeTriggers[actionType] ? this.slimReduxChangeTriggers[actionType] : null;
+        actionTypeRegistered = this.slimReduxChangeTriggers[actionType] !== undefined;
 
-    if (reducer) return reducer.apply(undefined, _toConsumableArray(payload).concat([state]));else return state;
+    if (actionTypeRegistered) {
+      var reducer = this.slimReduxChangeTriggers[actionType].reducer,
+          focusSubString = this.slimReduxChangeTriggers[actionType].focusSubString,
+          getFocusState = this.slimReduxChangeTriggers[actionType].getFocusState,
+          setFocusState = this.slimReduxChangeTriggers[actionType].setFocusState;
+
+      // Case #1: Focus subscription string was set --> Change trigger function only gets executed on a part of the state
+      if (focusSubString) {
+        var focusState = getFocusState(state),
+            newFocusState = reducer.apply(undefined, _toConsumableArray(payload).concat([focusState])),
+            newState = setFocusState(newFocusState, state);
+
+        return newState;
+      }
+
+      // Case #2: Focus subscription string null --> Execute change trigger function on complete state
+      return reducer.apply(undefined, _toConsumableArray(payload).concat([state]));
+    } else return state;
   }
 
   // Inject internal reducer
@@ -187,15 +187,15 @@ function createSlimReduxStore(initialState, options) {
   return store;
 }
 
-function changeTrigger(actionType, reducer) {
+function changeTrigger(actionType, reducer, focusSubString) {
   var error$$1 = function error$$1(msg) {
-    return error('createSlimReduxStore()', msg);
+    return error('changeTrigger()', msg);
   };
 
   /*
     Check input parameters, make it incredibly tight against faulty use
   */
-  if (arguments.length > 2) error$$1('Only two arguments allowed, got ' + arguments.length + ': \n ' + _JSON$stringify(arguments, null, 2));
+  if (arguments.length > 3) error$$1('Only three arguments allowed, got ' + arguments.length + ': \n ' + _JSON$stringify(arguments, null, 2));
 
   if (actionType === undefined || actionType === null || actionType.replace(/\s/g, '') === '') error$$1('"actionType" (first argument) cannot be empty, null, undefined or only contain whitespace: \n ' + _JSON$stringify(arguments, null, 2));
 
@@ -205,19 +205,24 @@ function changeTrigger(actionType, reducer) {
 
   if (!isFunction(reducer)) error$$1('"reducer" (second argument) needs to be of type Function, got ' + getType(actionType) + ' instead: \n ' + _JSON$stringify(arguments, null, 2));
 
-  if (getFuncParamNames(reducer).length === 0) error$$1('"reducer" (second argument) needs to be a function with at least one argument (state) \n ' + _JSON$stringify(arguments, null, 2));
+  if (reducer.length === 0) error$$1('"reducer" (second argument) needs to have at least one argument: \n ' + _JSON$stringify(arguments, null, 2));
+
+  if (isSet(focusSubString) && !isString(focusSubString)) error$$1('"focusSubString" (optional third argument) needs to be a string \n ' + _JSON$stringify(arguments, null, 2));
+
+  if (isSet(focusSubString) && isEmptyString(focusSubString)) error$$1('"focusSubString" (optional third argument) cannot be empty \n ' + _JSON$stringify(arguments, null, 2));
 
   /*
     Setup all the things the change trigger function needs inside a closure (ct = change trigger)
   */
   var ctActionType = actionType,
       ctReducerFunc = reducer,
-      ctReducerArgumentsCount = ctReducerFunc.length,
+      ctReducerArgumentsCount = reducer.length,
       // Rename this to payload arguments count?
-  ctReducerArgumentsNames = getFuncParamNames(ctReducerFunc),
-      ctError = function ctError(msg) {
+  ctError = function ctError(msg) {
     return error(ctActionType + ' change trigger function', msg);
-  };
+  },
+      ctFocusSubString = focusSubString || null;
+
   var ctRegistered = false,
       storeParam = null;
 
@@ -249,7 +254,22 @@ function changeTrigger(actionType, reducer) {
       Register change trigger in slim-redux reducer, if not done yet
     */
     if (!ctRegistered) {
-      store.slimReduxChangeTriggers[ctActionType] = ctReducerFunc;
+      // Check the subscription string of the change trigger
+      if (isSet(ctFocusSubString) && !isSubscriptionStrValid(ctFocusSubString, store.getState())) ctError('"focusSubString" (' + ctFocusSubString + ') could not be found in state \n ' + _JSON$stringify(store.getState(), null, 2));
+
+      store.slimReduxChangeTriggers[ctActionType] = {
+        reducer: ctReducerFunc, // change trigger function
+        focusSubString: ctFocusSubString, // subscription string which dictates the focus of the change trigger function
+        getFocusState: null,
+        setFocusState: null
+      };
+
+      // If change trigger has a focus string, set that up
+      if (ctFocusSubString) {
+        store.slimReduxChangeTriggers[ctActionType].getFocusState = eval('state => ' + ctFocusSubString), // function which will return the part of the state that the change trigger processes
+        store.slimReduxChangeTriggers[ctActionType].setFocusState = eval('(value, state) => { ' + ctFocusSubString + ' = value; return state; }'); // function which will set a part of the state and return the full state
+      }
+
       ctRegistered = true;
     }
 
@@ -292,11 +312,6 @@ function asyncChangeTrigger(changeTriggers, triggerFunction) {
 
   if (!isSet(triggerFunction)) error$$1('"triggerFunction" (second argument) cannot be null or undefined: \n ' + _JSON$stringify(arguments, null, 2));
 
-  var argNames = getFuncParamNames(triggerFunction),
-      ctNames = _Object$keys(changeTriggers);
-
-  if (!isDuplicateFree(argNames, ctNames)) error$$1('It looks like you included the names of one or more change triggers in the arguments of your "triggerFunction" (second argument). Change triggers can be called from inside the trigger function using this: this.changeTrigger(arguments) \n ' + _JSON$stringify(arguments, null, 2));
-
   /*
     Implementation
   */
@@ -324,13 +339,15 @@ function asyncChangeTrigger(changeTriggers, triggerFunction) {
     if (!isSet(store)) actError('Cannot find slim-redux store instance in arguments (last parameter) of async change trigger or in window.store (global scope, set by createSlimReduxStore()). If set the (disableGlobalStore: true) option in createSlimReduxStore(), make sure to pass in the desired slim-redux store instance as the last argument in every change trigger call');
 
     // Call triggerFunction w/ store instance, change triggers and the params!
-    actTriggerFunction.apply.apply(actTriggerFunction, [_extends({ store: store }, actChangeTriggers)].concat(parameters));
+    actTriggerFunction.apply(_extends({ store: store }, actChangeTriggers), parameters);
 
     // TODO: Adapt tests to use this.changeTrigger! Also make sure this even works :) (quick'n'dirty example)
   }
 
   return asyncChangeTriggerFunction;
 }
+
+var CANCEL_SUBSCRIPTION = 'CANCEL_SUBSCRIPTION';
 
 /*
     Special reselector which can tell us whether the underlying value has actually changed
@@ -407,7 +424,7 @@ function calculation(subscriptions, calcFunction, changeCallback, storeArg) {
 
   if (!isSet(calcFunction)) error$$1('"calcFunction" (second argument) cannot be undefined or null: \n ' + _JSON$stringify(arguments, null, 2));
 
-  if (getFuncParamNames(calcFunction).length !== subscriptions.length) error$$1('"calcFunction" (second argument) needs to have as many parameters as subscriptions in this calculation. The calcFunction() should only rely on the subscriptions for state access. \n ' + _JSON$stringify(arguments, null, 2));
+  if (calcFunction.length !== subscriptions.length) error$$1('"calcFunction" (second argument) Needs to have as many arguments as there are subscriptions. Calculations can only rely on their subscriptions for data: \n ' + _JSON$stringify(arguments, null, 2));
 
   // Check changeCallback
   if (!isSet(changeCallback)) error$$1('"changeCallback" (third argument) cannot be undefined or null:  \n ' + _JSON$stringify(arguments, null, 2));
@@ -448,16 +465,20 @@ function calculation(subscriptions, calcFunction, changeCallback, storeArg) {
   // Initial firing - initially of course the state has changed!
   checkCalculationSelector(store.getState());
 
-  // #3: Subscribe that bitch in store.subscribe() and only call changeCallback if it actually changed
+  // #3: Subscribe calculation using store.subscribe() and only call changeCallback if it actually changed
   var unsubscribe = store.subscribe(function () {
-    var state = store.getState(),
-        subscriptionState = checkCalculationSelector(state);
+    var subscriptionState = checkCalculationSelector(store.getState());
 
-    if (subscriptionState.hasChanged) changeCallback(subscriptionState.data, state);
+    if (subscriptionState.hasChanged) changeCallback(subscriptionState.data, store.getState());
   });
 
-  // All done
-  return unsubscribe;
+  // #4: Create the function which will be returned
+  var getCalculationOrUnsubscribe = function getCalculationOrUnsubscribe(instruction) {
+    if (instruction === CANCEL_SUBSCRIPTION) unsubscribe();else return checkCalculationSelector(store.getState()).data; // Returns the calculation value
+  };
+
+  // All done!
+  return getCalculationOrUnsubscribe;
 }
 
 function subscription(subscription, changeCallback, storeArg) {
@@ -511,15 +532,19 @@ function subscription(subscription, changeCallback, storeArg) {
 
   // Step #2: Subscribe to state changes (native redux API function), but only trigger changeTrigger() when our subscription has changed
   var unsubscribe = store.subscribe(function () {
-    var state = store.getState(),
-        subscriptionState = checkSubscriptionSelector(state);
+    var subscriptionState = checkSubscriptionSelector(store.getState());
 
-    if (subscriptionState.hasChanged) changeCallback(subscriptionState.data, state);
+    if (subscriptionState.hasChanged) changeCallback(subscriptionState.data, store.getState());
   });
 
+  // Step #3: Create getter for subscription value / unsubscribe function
+  var getStateOrUnsubscribe = function getStateOrUnsubscribe(instruction) {
+    if (instruction === CANCEL_SUBSCRIPTION) unsubscribe();else return checkSubscriptionSelector(store.getState()).data; // Returns the subscription value
+  };
+
   // All done!
-  return unsubscribe;
+  return getStateOrUnsubscribe;
 }
 
-export { createSlimReduxStore, changeTrigger, asyncChangeTrigger, calculation, subscription };
+export { createSlimReduxStore, changeTrigger, asyncChangeTrigger, calculation, subscription, CANCEL_SUBSCRIPTION };
 //# sourceMappingURL=index.es.js.map
