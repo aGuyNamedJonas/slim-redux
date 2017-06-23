@@ -21,6 +21,9 @@ export function changeTrigger(actionType, reducer, focusSubString){
   if(!isFunction(reducer))
     error(`"reducer" (second argument) needs to be of type Function, got ${getType(actionType)} instead: \n ${JSON.stringify(arguments, null, 2)}`);
 
+  if(reducer.length === 0)
+    error(`"reducer" (second argument) needs to have at least one argument: \n ${JSON.stringify(arguments, null, 2)}`);
+
   if(isSet(focusSubString) && !isString(focusSubString))
     error(`"focusSubString" (optional third argument) needs to be a string \n ${JSON.stringify(arguments, null, 2)}`);
 
@@ -33,7 +36,7 @@ export function changeTrigger(actionType, reducer, focusSubString){
   */
   const ctActionType            = actionType,
         ctReducerFunc           = reducer,
-        ctReducerArgumentsCount = ctReducerFunc.length,   // Rename this to payload arguments count?
+        ctReducerArgumentsCount = reducer.length,   // Rename this to payload arguments count?
         ctError                 = msg => _err(`${ctActionType} change trigger function`, msg),
         ctFocusSubString        = focusSubString || null;
         

@@ -121,12 +121,6 @@ describe('changeTrigger() (error / special cases)', () => {
     }).toThrow();
   });
 
-  test('throws when optional third argument (a subscription style string) cannot be found in the state', () => {
-    expect(() => {
-      const ctFuncFail = changeTrigger('ADD_TODO', state => state, 'state.cannot.be.found');
-    }).toThrow();
-  });
-
   test('throws when optional third argument (a subscription style string) is an empty string', () => {
     expect(() => {
       const ctFuncFail = changeTrigger('ADD_TODO', state => state, '');
@@ -158,11 +152,11 @@ describe('change trigger functions (default cases)', () => {
     // Make sure that what was our first argument is the type of the dispatched action
     expect(actionObject).toMatchObject({
       type: INCREMENT,
-      payload: {
-        a: 'aaa',
-        b: 'bbb',
-        c: 'ccc',
-      }
+      payload: [
+        'aaa',
+        'bbb',
+        'ccc',
+      ]
     });
   });
 
@@ -199,7 +193,7 @@ describe('change trigger functions (default cases)', () => {
           returnValue   = increment();
 
     expect(returnValue).toEqual({
-      action: {type: INCREMENT, payload: {}},
+      action: {type: INCREMENT, payload: []},
       state : globalStoreOn.getState(),
     });
   });
@@ -258,6 +252,13 @@ describe('change trigger functions (special cases / error cases)', () => {
         are definitely too much.
       */
       increment('too many', 'arguments');
+    }).toThrow();
+  });
+
+  test('throws when optional previously set subscriptoin string cannot be found in the state', () => {
+    expect(() => {
+      const ctFuncFail = changeTrigger('ADD_TODO', state => state, 'state.cannot.be.found');
+      ctFuncFail();
     }).toThrow();
   });
 
