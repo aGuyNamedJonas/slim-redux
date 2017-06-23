@@ -26,6 +26,9 @@ const error = msg => _err('calculation()', msg);
   if(!isSet(calcFunction))
     error(`"calcFunction" (second argument) cannot be undefined or null: \n ${JSON.stringify(arguments, null, 2)}`);
 
+  if(calcFunction.length !== subscriptions.length)
+    error(`"calcFunction" (second argument) Needs to have as many arguments as there are subscriptions. Calculations can only rely on their subscriptions for data: \n ${JSON.stringify(arguments, null, 2)}`);
+
   // Check changeCallback
   if(!isSet(changeCallback))
     error(`"changeCallback" (third argument) cannot be undefined or null:  \n ${JSON.stringify(arguments, null, 2)}`);
