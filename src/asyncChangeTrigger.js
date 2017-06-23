@@ -47,7 +47,7 @@ export function asyncChangeTrigger(changeTriggers, triggerFunction) {
         actError(`Cannot find slim-redux store instance in arguments (last parameter) of async change trigger or in window.store (global scope, set by createSlimReduxStore()). If set the (disableGlobalStore: true) option in createSlimReduxStore(), make sure to pass in the desired slim-redux store instance as the last argument in every change trigger call`);
 
       // Call triggerFunction w/ store instance, change triggers and the params!
-      actTriggerFunction.apply({ store, ...actChangeTriggers }, ...parameters);
+      actTriggerFunction.apply({ store, ...actChangeTriggers }, parameters);
 
       // TODO: Adapt tests to use this.changeTrigger! Also make sure this even works :) (quick'n'dirty example)
   }

@@ -38,10 +38,6 @@ describe('Async change triggers', () => {
       expect(() => asyncChangeTrigger({ noopCt }, null)).toThrow();
       expect(() => asyncChangeTrigger({ noopCt }, undefined)).toThrow();
     });
-
-    test('throws when "triggerFunction" (second argument) has any argument names that match a change trigger name (change triggers are made available to the trigger function automatically to reduce typing overhead)', () => {
-      expect(() => asyncChangeTrigger({ noopCt }, (noopCt) => {})).toThrow();
-    });
   });
 
   describe('trigger functions (regular / default cases)', () => {
