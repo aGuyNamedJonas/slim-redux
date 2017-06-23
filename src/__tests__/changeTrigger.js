@@ -49,21 +49,19 @@ describe('changeTrigger() (default behavior)', () => {
   });
 
   test('when optional third subscription string is set, reducer function will only receive that part of state', () => {
+    var stateReceived = null;
+    
     const store         = createSlimReduxStore({ counter: INITIAL_STATE, b: 'b', c: 'c' }),
-          // triggerFunc   = jest.fn((counter) => counter + 1),                       // This version throws off the argument counting mechanism (function.length is not accurate anymore)
-          // TODO: Continue here!   --> Change triggerFunc to manually store what it was called up with!
+          triggerFunc   = counter => { stateReceived = counter; return counter + 1; },
           increment     = changeTrigger('INCREMENT', triggerFunc, 'state.counter');
 
-    console.log(`*** Reducer function will only receive that part of the state.... ctFunc argument count: ${triggerFunc.length}`)
-    expect(false).toBe(true);
-
-    // increment();
-    // expect(triggerFunc).toHaveBeenCalledWith(INITIAL_STATE);
+    increment();
+    expect(stateReceived).toBe(INITIAL_STATE);
   });
 
   test('when optional third subscription string is set, reducer function will only be able to modify that part of the state', () => {
     const store         = createSlimReduxStore({ counter: INITIAL_STATE, b: 'b', c: 'c' }),
-          triggerFunc   = jest.fn((counter) => counter + 1),
+          triggerFunc   = counter => counter + 1,
           increment     = changeTrigger('INCREMENT', triggerFunc, 'state.counter');
 
     increment();
@@ -211,21 +209,33 @@ describe('change trigger functions (default cases)', () => {
   });
 
   test('arguments for trigger function are always provided in the order they were given on invocation of change trigger', () => {
+    var setOne = null,
+        setTwo = null,
+        setThree = null;
+    
     const globalStoreOn = createSlimReduxStore(INITIAL_STATE),
-          triggerFunc   = jest.fn((first, second, third, state) => state),
-          noopCt        = changeTrigger('NOOP', triggerFunc)
-          argSetOne     = ['arg one', 'arg two', 'arg three'],
-          argSetOne     = ['arg three', 'arg one', 'arg two'],
-          argSetOne     = ['arg two', 'arg one', 'arg three'];
+          triggerFunc   = (first, second, third, state) => {
+            if(setOne === null)
+              setOne = [first, second, third];
+            else if(setTwo === null)
+              setTwo = [first, second, third];
+            else if(setThree === null)
+              setThree = [first, second, third];
+            
+            return state;
+          },
+          noopCt      = changeTrigger('NOOP', triggerFunc),
+          argSetOne   = ['arg one', 'arg two', 'arg three'],
+          argSetTwo   = ['arg three', 'arg one', 'arg two'],
+          argSetThree = ['arg two', 'arg one', 'arg three'];
 
     noopCt.apply(null, argSetOne);
-    expect(triggerFunc).toHaveBeenCalledWith(...argSetOne);
-
     noopCt.apply(null, argSetTwo);
-    expect(triggerFunc).toHaveBeenCalledWith(...argSetTwo);
-
     noopCt.apply(null, argSetThree);
-    expect(triggerFunc).toHaveBeenCalledWith(...argSetThree);
+    
+    expect(setOne).toEqual(argSetOne);
+    expect(setTwo).toEqual(argSetTwo);
+    expect(setThree).toEqual(argSetThree);
   });
 });
 

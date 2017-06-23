@@ -86,14 +86,8 @@ export function changeTrigger(actionType, reducer, focusSubString){
 
       // If change trigger has a focus string, set that up
       if(ctFocusSubString) {
-        // Take the last part off of the subscription string
-        var focusSubStringParts = ctFocusSubString.split('.');
-        focusSubStringParts.pop();
-      
-        const ctFocusSetterString = focusSubStringParts.join('.');
-
         store.slimReduxChangeTriggers[ctActionType].getFocusState = eval(`state => ${ctFocusSubString}`),  // function which will return the part of the state that the change trigger processes
-        store.slimReduxChangeTriggers[ctActionType].setFocusState = eval(`(value, state) => { ${ctFocusSetterString} = value; return state; }`) // function which will set a part of the state and return the full state
+        store.slimReduxChangeTriggers[ctActionType].setFocusState = eval(`(value, state) => { ${ctFocusSubString} = value; return state; }`) // function which will set a part of the state and return the full state
       }
 
       ctRegistered = true;
