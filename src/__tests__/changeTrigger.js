@@ -50,11 +50,15 @@ describe('changeTrigger() (default behavior)', () => {
 
   test('when optional third subscription string is set, reducer function will only receive that part of state', () => {
     const store         = createSlimReduxStore({ counter: INITIAL_STATE, b: 'b', c: 'c' }),
-          triggerFunc   = jest.fn((counter) => counter + 1),
+          // triggerFunc   = jest.fn((counter) => counter + 1),                       // This version throws off the argument counting mechanism (function.length is not accurate anymore)
+          // TODO: Continue here!   --> Change triggerFunc to manually store what it was called up with!
           increment     = changeTrigger('INCREMENT', triggerFunc, 'state.counter');
 
-    increment();
-    expect(triggerFunc).toHaveBeenCalledWith(INITIAL_STATE);
+    console.log(`*** Reducer function will only receive that part of the state.... ctFunc argument count: ${triggerFunc.length}`)
+    expect(false).toBe(true);
+
+    // increment();
+    // expect(triggerFunc).toHaveBeenCalledWith(INITIAL_STATE);
   });
 
   test('when optional third subscription string is set, reducer function will only be able to modify that part of the state', () => {
