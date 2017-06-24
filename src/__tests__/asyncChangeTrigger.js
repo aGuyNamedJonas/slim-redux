@@ -10,9 +10,10 @@ beforeEach(() => resetStore());
 
 describe('Async change triggers', () => {
   describe('asyncChangeTrigger() (regular / default case)', () => {
-    test('returns a function', () => {});
-
-
+    test('returns a function', () => {
+      const aCT = asyncChangeTrigger({ noopCt }, arg => arg);
+      expect(isFunction(aCT)).toBe(true);
+    });
   });
 
   describe('asyncChangeTrigger() (error cases)', () => {
@@ -41,20 +42,53 @@ describe('Async change triggers', () => {
   });
 
   describe('trigger functions (regular / default cases)', () => {
-    test('will receive function arguments and state + changetriggers as the context', () => {
-      const triggerFunction = jest.fn((arg) => {}),
-            aCT             = asyncChangeTrigger({ noopCt }, triggerFunction),
-            testArg         = 'TEST ARGUMENT VALUE';
+    test('will provide state + changetriggers as the context', () => {
+      var contextState = null,
+          contextCt    = null;
+      
+      const triggerFunction = jest.fn((arg) => {
+                                contextState = this.state;
+                                contextCt    = this.noopCt;
+                              }),
+            aCT             = asyncChangeTrigger({ noopCt }, triggerFunction);
 
-      aCT(testArg);
+      aCT('some argument');
 
-      expect(triggerFunction).toHaveBeenCalledWith(testArg);
+      expect(contextState).toEqual(store.getState());
+      expect(contextCt).toEqual(noopCt);
     });
 
-    test('change triggers will use the same store as the instance that is used by triggerFunction on invocation', () => {});
+    test('change triggers will use the same store as the instance that is used by triggerFunction on invocation', () => {
+      var storeInstanceCt  = null,
+          storeInstanceAct = null; 
+      
+      const localStore = createSlimReduxStore({ random: 'state' }),
+            ct         = changeTrigger('RANDOM_OP', state => {storeInstanceCt = state; return state; }),
+            act        = asyncChangeTrigger({ct}, () => storeInstanceAct = this.store.getState());
+
+      act(localStore);
+
+      expect(storeInstanceCt).toEqual(localStore.getState());
+      expect(storeInstanceAct).toEqual(localStore.getState());
+    });
   });
 
   describe('trigger functions (error cases)', () => {
-    test('throws when no slim-redux store instance can be found', () => {});
+    test('throws when no slim-redux store instance can be found', () => {
+      window.store = null;
+
+      const aCT = asyncChangeTrigger({ noopCt }, arg => arg);
+      expect(() => aCT('first')).toThrow();        // This is expected to throw as the global store instance was deleted and no local instance was passed in
+
+      // Re-setup global slim redux store instance
+      window.store = store;
+    });
+
+    test('throws when more arguments are passed in, than were orignally defined', () => {
+      const aCT = asyncChangeTrigger({ noopCt }, arg => arg);
+      expect(() => aCT('first', 'illegal second argument')).toThrow();
+    });
   });
 });
+
+describe('Bug fixes (test names indicate the version where this was found)', () => {});
