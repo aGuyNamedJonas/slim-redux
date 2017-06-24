@@ -176,3 +176,5 @@ describe('Calculation() (error / special cases)', () => {
     expect(cbFunc.notCalled).toBe(true);
   });
 });
+
+describe('Bug fixes (test names indicate the version where this was found)', () => {});

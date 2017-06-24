@@ -31,3 +31,5 @@ describe('NPM module', () => {
     expect(CANCEL_SUBSCRIPTION).not.toBeUndefined();
   });
 });
+
+describe('Bug fixes (test names indicate the version where this was found)', () => {});

@@ -311,3 +311,5 @@ describe('Bug fixes (test names indicate the version where this was found)', () 
     expect(cbFunc).not.toHaveBeenCalled();
   });
 });
+
+describe('Bug fixes (test names indicate the version where this was found)', () => {});
