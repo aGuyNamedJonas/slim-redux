@@ -5,12 +5,12 @@ Object.defineProperty(exports, '__esModule', { value: true });
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
 var _toConsumableArray = _interopDefault(require('babel-runtime/helpers/toConsumableArray'));
+var _extends = _interopDefault(require('babel-runtime/helpers/extends'));
 var _Object$keys = _interopDefault(require('babel-runtime/core-js/object/keys'));
 var _JSON$stringify = _interopDefault(require('babel-runtime/core-js/json/stringify'));
 var redux = require('redux');
 var intersection = _interopDefault(require('lodash.intersection'));
 var reduceReducers = _interopDefault(require('reduce-reducers'));
-var _extends = _interopDefault(require('babel-runtime/helpers/extends'));
 var reselect = require('reselect');
 
 var error = function error(location, msg) {
@@ -171,16 +171,20 @@ function createSlimReduxStore(initialState, options) {
 
       // Case #1: Focus subscription string was set --> Change trigger function only gets executed on a part of the state
       if (focusSubString) {
-        var focusState = getFocusState(state),
+        var stateClone = _extends({}, state),
+            // It's vital that we don't mutate the existing state, see this: https://egghead.io/lessons/javascript-redux-avoiding-object-mutations-with-object-assign-and-spread
+        focusState = getFocusState(stateClone),
             newFocusState = reducer.apply(undefined, _toConsumableArray(payload).concat([focusState])),
-            newState = setFocusState(newFocusState, state);
+            newState = setFocusState(newFocusState, stateClone);
 
         return newState;
       }
 
       // Case #2: Focus subscription string null --> Execute change trigger function on complete state
       return reducer.apply(undefined, _toConsumableArray(payload).concat([state]));
-    } else return state;
+    } else {
+      return state;
+    }
   }
 
   // Inject internal reducer

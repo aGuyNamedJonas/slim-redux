@@ -1,15 +1,15 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('babel-runtime/helpers/toConsumableArray'), require('babel-runtime/core-js/object/keys'), require('babel-runtime/core-js/json/stringify'), require('redux'), require('lodash.intersection'), require('reduce-reducers'), require('babel-runtime/helpers/extends'), require('reselect')) :
-  typeof define === 'function' && define.amd ? define(['exports', 'babel-runtime/helpers/toConsumableArray', 'babel-runtime/core-js/object/keys', 'babel-runtime/core-js/json/stringify', 'redux', 'lodash.intersection', 'reduce-reducers', 'babel-runtime/helpers/extends', 'reselect'], factory) :
-  (factory((global.slim-redux = global.slim-redux || {}),global._toConsumableArray,global._Object$keys,global._JSON$stringify,global.redux,global.intersection,global.reduceReducers,global._extends,global.reselect));
-}(this, (function (exports,_toConsumableArray,_Object$keys,_JSON$stringify,redux,intersection,reduceReducers,_extends,reselect) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('babel-runtime/helpers/toConsumableArray'), require('babel-runtime/helpers/extends'), require('babel-runtime/core-js/object/keys'), require('babel-runtime/core-js/json/stringify'), require('redux'), require('lodash.intersection'), require('reduce-reducers'), require('reselect')) :
+  typeof define === 'function' && define.amd ? define(['exports', 'babel-runtime/helpers/toConsumableArray', 'babel-runtime/helpers/extends', 'babel-runtime/core-js/object/keys', 'babel-runtime/core-js/json/stringify', 'redux', 'lodash.intersection', 'reduce-reducers', 'reselect'], factory) :
+  (factory((global.slim-redux = global.slim-redux || {}),global._toConsumableArray,global._extends,global._Object$keys,global._JSON$stringify,global.redux,global.intersection,global.reduceReducers,global.reselect));
+}(this, (function (exports,_toConsumableArray,_extends,_Object$keys,_JSON$stringify,redux,intersection,reduceReducers,reselect) { 'use strict';
 
 _toConsumableArray = 'default' in _toConsumableArray ? _toConsumableArray['default'] : _toConsumableArray;
+_extends = 'default' in _extends ? _extends['default'] : _extends;
 _Object$keys = 'default' in _Object$keys ? _Object$keys['default'] : _Object$keys;
 _JSON$stringify = 'default' in _JSON$stringify ? _JSON$stringify['default'] : _JSON$stringify;
 intersection = 'default' in intersection ? intersection['default'] : intersection;
 reduceReducers = 'default' in reduceReducers ? reduceReducers['default'] : reduceReducers;
-_extends = 'default' in _extends ? _extends['default'] : _extends;
 
 var error = function error(location, msg) {
   throw new Error('*** Error in ' + location + ': ' + msg);
@@ -169,16 +169,20 @@ function createSlimReduxStore(initialState, options) {
 
       // Case #1: Focus subscription string was set --> Change trigger function only gets executed on a part of the state
       if (focusSubString) {
-        var focusState = getFocusState(state),
+        var stateClone = _extends({}, state),
+            // It's vital that we don't mutate the existing state, see this: https://egghead.io/lessons/javascript-redux-avoiding-object-mutations-with-object-assign-and-spread
+        focusState = getFocusState(stateClone),
             newFocusState = reducer.apply(undefined, _toConsumableArray(payload).concat([focusState])),
-            newState = setFocusState(newFocusState, state);
+            newState = setFocusState(newFocusState, stateClone);
 
         return newState;
       }
 
       // Case #2: Focus subscription string null --> Execute change trigger function on complete state
       return reducer.apply(undefined, _toConsumableArray(payload).concat([state]));
-    } else return state;
+    } else {
+      return state;
+    }
   }
 
   // Inject internal reducer

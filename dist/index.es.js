@@ -1,10 +1,10 @@
 import _toConsumableArray from 'babel-runtime/helpers/toConsumableArray';
+import _extends from 'babel-runtime/helpers/extends';
 import _Object$keys from 'babel-runtime/core-js/object/keys';
 import _JSON$stringify from 'babel-runtime/core-js/json/stringify';
 import { createStore } from 'redux';
 import intersection from 'lodash.intersection';
 import reduceReducers from 'reduce-reducers';
-import _extends from 'babel-runtime/helpers/extends';
 import { createSelectorCreator } from 'reselect';
 
 var error = function error(location, msg) {
@@ -165,16 +165,20 @@ function createSlimReduxStore(initialState, options) {
 
       // Case #1: Focus subscription string was set --> Change trigger function only gets executed on a part of the state
       if (focusSubString) {
-        var focusState = getFocusState(state),
+        var stateClone = _extends({}, state),
+            // It's vital that we don't mutate the existing state, see this: https://egghead.io/lessons/javascript-redux-avoiding-object-mutations-with-object-assign-and-spread
+        focusState = getFocusState(stateClone),
             newFocusState = reducer.apply(undefined, _toConsumableArray(payload).concat([focusState])),
-            newState = setFocusState(newFocusState, state);
+            newState = setFocusState(newFocusState, stateClone);
 
         return newState;
       }
 
       // Case #2: Focus subscription string null --> Execute change trigger function on complete state
       return reducer.apply(undefined, _toConsumableArray(payload).concat([state]));
-    } else return state;
+    } else {
+      return state;
+    }
   }
 
   // Inject internal reducer
