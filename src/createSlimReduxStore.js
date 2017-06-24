@@ -104,17 +104,19 @@ export function createSlimReduxStore(initialState, options) {
 
       // Case #1: Focus subscription string was set --> Change trigger function only gets executed on a part of the state
       if(focusSubString){
-        const focusState    = getFocusState(state),
+        const stateClone    = { ...state },   // It's vital that we don't mutate the existing state, see this: https://egghead.io/lessons/javascript-redux-avoiding-object-mutations-with-object-assign-and-spread
+              focusState    = getFocusState(stateClone),
               newFocusState = reducer(...payload, focusState),
-              newState      = setFocusState(newFocusState, state);
+              newState      = setFocusState(newFocusState, stateClone);
 
         return newState;
       }
 
       // Case #2: Focus subscription string null --> Execute change trigger function on complete state
       return reducer(...payload, state);
-    } else
+    } else {
       return state;
+    }
 
   }
 

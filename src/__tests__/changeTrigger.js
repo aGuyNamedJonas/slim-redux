@@ -1,5 +1,5 @@
 import { applyMiddleware } from 'redux';
-import { changeTrigger, createSlimReduxStore } from '../'; // Make sure to test what the NPM module will export
+import { changeTrigger, createSlimReduxStore, calculation } from '../'; // Make sure to test what the NPM module will export
 import { getType, isFunction } from '../util';
 
 const INITIAL_STATE     = 0,
@@ -39,7 +39,6 @@ describe('changeTrigger() (default behavior)', () => {
   test('second argument is reducer function', () => {
     const store = createSlimReduxStore(INITIAL_STATE);
     const increment = changeTrigger(INCREMENT, state => {
-      console.log(`Calling increment CT reducer function`)
       return state + 1;
     });
     increment();
@@ -59,7 +58,7 @@ describe('changeTrigger() (default behavior)', () => {
     expect(stateReceived).toBe(INITIAL_STATE);
   });
 
-  test('when optional third subscription string is set, reducer function will only be able to modify that part of the state', () => {
+  test('when optional subscription string is set, reducer function will only be able to modify that part of the state', () => {
     const store         = createSlimReduxStore({ counter: INITIAL_STATE, b: 'b', c: 'c' }),
           triggerFunc   = counter => counter + 1,
           increment     = changeTrigger('INCREMENT', triggerFunc, 'state.counter');
@@ -297,5 +296,18 @@ describe('change trigger functions (special cases / error cases)', () => {
     // expect the globalStore to still be on the INITIAL_STATE
     expect(globalStoreOn.getState()).toEqual(INITIAL_STATE);
     expect(secondStore.getState()).toEqual(INCREMENTED_STATE);
+  });
+});
+
+describe('Bug fixes (test names indicate the version where this was found)', () => {
+  test('[0.2.2 BETA]: When optional subscription string is set, the scoped state modification does not misfire on subscriptions on rest of state', () => {
+    const store      = createSlimReduxStore({ counter: INITIAL_STATE, b: 'b', c: 'c' }),
+          incCounter = changeTrigger('INCREMENT', counter => counter + 1, 'state.counter'),
+          cbFunc     = jest.fn(result => result),
+          calc       = calculation(['state.b'], b => b, cbFunc);
+
+
+    incCounter();
+    expect(cbFunc).not.toHaveBeenCalled();
   });
 });
