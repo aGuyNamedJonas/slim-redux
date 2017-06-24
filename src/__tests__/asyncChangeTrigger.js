@@ -34,7 +34,7 @@ describe('Async change triggers', () => {
       expect(() => asyncChangeTrigger({ noopCt }, 'NOT A FUNCTION')).toThrow();
     });
 
-    test('throws when "triggerFunction" (second argument) null or undefined', () => {
+    test('throws when "triggerFunction" (second argument) is null or undefined', () => {
       expect(() => asyncChangeTrigger({ noopCt }, null)).toThrow();
       expect(() => asyncChangeTrigger({ noopCt }, undefined)).toThrow();
     });
