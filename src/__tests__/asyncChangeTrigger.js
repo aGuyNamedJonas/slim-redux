@@ -11,24 +11,24 @@ beforeEach(() => resetStore());
 describe('Async change triggers', () => {
   describe('asyncChangeTrigger() (regular / default case)', () => {
     test('returns a function', () => {
-      const aCT = asyncChangeTrigger({ noopCt }, arg => arg);
+      const aCT = asyncChangeTrigger({ noopCt }, ct => {});
       expect(isFunction(aCT)).toBe(true);
     });
   });
 
   describe('asyncChangeTrigger() (error cases)', () => {
     test('throws when more than two arguments are provided', () => {
-      expect(() => asyncChangeTrigger({ noopCt }, () => {}, 'ILLEGAL THIRD ARGUMENT')).toThrow();
+      expect(() => asyncChangeTrigger({ noopCt }, ct => {}, 'ILLEGAL THIRD ARGUMENT')).toThrow();
     });
 
     test('throws when "changeTriggers" (first argument) is not an object', () => {
-      expect(() => asyncChangeTrigger([ noopCt ], () => {})).toThrow();
+      expect(() => asyncChangeTrigger([ noopCt ], ct => {})).toThrow();
     });
 
     test('throws when "changeTriggers" (first argument) is null, undefined, or an empty Object', () => {
-      expect(() => asyncChangeTrigger(null, () => {})).toThrow();
-      expect(() => asyncChangeTrigger(undefined, () => {})).toThrow();
-      expect(() => asyncChangeTrigger({}, () => {})).toThrow();
+      expect(() => asyncChangeTrigger(null, ct => {})).toThrow();
+      expect(() => asyncChangeTrigger(undefined, ct => {})).toThrow();
+      expect(() => asyncChangeTrigger({}, ct => {})).toThrow();
     });
 
     test('throws when "triggerFunction" (second argument) is not a function', () => {
@@ -39,37 +39,62 @@ describe('Async change triggers', () => {
       expect(() => asyncChangeTrigger({ noopCt }, null)).toThrow();
       expect(() => asyncChangeTrigger({ noopCt }, undefined)).toThrow();
     });
+
+    test('throws when "triggerFunction" (second argument) has zero arguments (needs at least one for change triggers + state)', () => {
+      expect(() => asyncChangeTrigger({ noopCt }, () => {})).toThrow();
+    });
   });
 
   describe('trigger functions (regular / default cases)', () => {
-    test('will provide state + changetriggers as the context', () => {
+    test('will pass in state + changetriggers as an object as the last function argument', () => {
       var contextState = null,
           contextCt    = null;
       
-      const triggerFunction = jest.fn((arg) => {
-                                contextState = this.state;
-                                contextCt    = this.noopCt;
-                              }),
+      const triggerFunction = ct => {
+                                contextState = ct.state;
+                                contextCt    = ct.noopCt;
+                              },
             aCT             = asyncChangeTrigger({ noopCt }, triggerFunction);
 
-      aCT('some argument');
+      aCT();
 
       expect(contextState).toEqual(store.getState());
-      expect(contextCt).toEqual(noopCt);
+
+      // To check for equality of change trigger functions, we'll have to make sure they:
+      // #1 Emit the same action type
+      // #2 Produce the same action
+      // #3 Produce the same store modification
+      // expect(contextCt).toEqual(noopCt);
+    });
+
+    test('context for the trigger function (last argument) can be any valid javascript identifier', () => {
+      // Just having a little bit of unicode fun, remember kids: There's an absurd amount of characters that JS allows to be variable names! :)
+      // https://stackoverflow.com/questions/1661197/what-characters-are-valid-for-javascript-variable-names
+      expect(() => asyncChangeTrigger({ noopCt }, 𐅡 => {})).not.toThrow();
+      expect(() => asyncChangeTrigger({ noopCt }, ي => {})).not.toThrow();
+      expect(() => asyncChangeTrigger({ noopCt }, ˮ => {})).not.toThrow();
     });
 
     test('change triggers will use the same store as the instance that is used by triggerFunction on invocation', () => {
-      var storeInstanceCt  = null,
-          storeInstanceAct = null; 
+      var stateInstanceCt  = null,
+          stateInstanceAct = null; 
       
       const localStore = createSlimReduxStore({ random: 'state' }),
-            ct         = changeTrigger('RANDOM_OP', state => {storeInstanceCt = state; return state; }),
-            act        = asyncChangeTrigger({ct}, () => storeInstanceAct = this.store.getState());
+            ct         = changeTrigger('RANDOM_OP', state => {
+              stateInstanceCt = state; 
+              return state; 
+            }),
+            act        = asyncChangeTrigger({ ct }, context => {
+              // Store the state instance we received...
+              stateInstanceAct = context.state;
+              // Execute the change trigger we got...
+              context.ct();
+            });
 
       act(localStore);
 
-      expect(storeInstanceCt).toEqual(localStore.getState());
-      expect(storeInstanceAct).toEqual(localStore.getState());
+      expect(stateInstanceCt).toEqual(localStore.getState());
+      expect(stateInstanceAct).toEqual(localStore.getState());
     });
   });
 
@@ -85,7 +110,7 @@ describe('Async change triggers', () => {
     });
 
     test('throws when more arguments are passed in, than were orignally defined', () => {
-      const aCT = asyncChangeTrigger({ noopCt }, arg => arg);
+      const aCT = asyncChangeTrigger({ noopCt }, ct => {});
       expect(() => aCT('first', 'illegal second argument')).toThrow();
     });
   });
