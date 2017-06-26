@@ -4,7 +4,9 @@ import reduceReducers from 'reduce-reducers';
 
 export function createSlimReduxStore(initialState, options) {
   const error = msg => _err('createSlimReduxStore()', msg);
-  global.window = global;
+
+  if(!window)
+    global.window = global;
 
   /*
     Set default values
