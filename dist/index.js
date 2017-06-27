@@ -82,7 +82,8 @@ function createSlimReduxStore(initialState, options) {
   var error$$1 = function error$$1(msg) {
     return error('createSlimReduxStore()', msg);
   };
-  global.window = global;
+
+  if (!window) global.window = global;
 
   /*
     Set default values
