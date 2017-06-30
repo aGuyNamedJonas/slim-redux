@@ -344,6 +344,11 @@ function asyncChangeTrigger(changeTriggers, triggerFunction) {
       storeParam = isObject(lastArg) && isSlimReduxStore(lastArg) ? lastArg : null;
     }
 
+    // If store parameter was set, remove it from the parameters
+    var actParameters = parameters;
+
+    if (storeParam) actParameters.splice(-1, 1);
+
     // Get store either from the parameters, the global scope (if setup) or throw an error
     var store = storeParam || window.store;
 
@@ -371,8 +376,8 @@ function asyncChangeTrigger(changeTriggers, triggerFunction) {
     });
 
     // Call triggerFunction w/ parameters and object with state and change triggers as last argument
-    if (storeParam && parameters.length === 1 || !storeParam && parameters.length === 0) // in this case the async change trigger doesn't have any function arguments of its own
-      actTriggerFunction(_extends({ state: store.getState() }, localStoreChangeTriggers));else actTriggerFunction.apply(undefined, parameters.concat([_extends({ state: store.getState() }, localStoreChangeTriggers)]));
+    if (actParameters.length === 0) // in this case the async change trigger doesn't have any function arguments of its own
+      actTriggerFunction(_extends({ state: store.getState() }, localStoreChangeTriggers));else actTriggerFunction.apply(undefined, actParameters.concat([_extends({ state: store.getState() }, localStoreChangeTriggers)])); // ...parameters does not work when the last parameter is the goddamn store!! -.-
   }
 
   return asyncChangeTriggerFunction;
